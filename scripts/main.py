@@ -32,7 +32,7 @@ for q in questions_to_run:
     print(f"Question {q}")
     print("="*50)
 
-    filename = f"question_{q.lower()}.py"
+    filename = f"scripts/question_{q.lower()}.py"
     exec(open(filename).read())
 
 print("\n" + "="*50)

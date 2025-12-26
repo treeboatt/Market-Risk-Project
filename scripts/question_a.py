@@ -81,7 +81,7 @@ def count_violations(returns, threshold):
 print("\nQuestion A Non parametric VaR\n")
 # temp_var = 0
 
-all_prices, all_dates = read_csv("../data/Natixis.csv")
+all_prices, all_dates = read_csv("data/Natixis.csv")
 print(f"Loaded data: {len(all_prices)} prices\n")
 
 print("a) VaR estimation (2015-2016)")

@@ -117,7 +117,7 @@ def get_sigma(transactions):
 print("\nQuestion D Bouchaud Model\n")
 
 
-trans = read_transaction_data("../data/Dataset TD4.csv")
+trans = read_transaction_data("data/Dataset TD4.csv")
 print(f"Transactions: {len(trans)}\n")
 
 lam, delta = get_bouchaud_params(trans)

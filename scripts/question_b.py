@@ -83,7 +83,7 @@ def expected_shortfall(returns, alpha=0.05):
 
 print("\nQuestion B Expected Shortfall\n")
 
-all_prices, all_dates = read_csv("../data/Natixis.csv")
+all_prices, all_dates = read_csv("data/Natixis.csv")
 train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
 train_rets = get_returns(train_prices)
 

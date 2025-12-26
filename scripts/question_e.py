@@ -112,7 +112,7 @@ def annualized_vol(returns, periods=252):
 
 print("\nQuestion E Haar Wavelets & Hurst\n")
 
-fx_data = read_forex_data("../data/Dataset TD5.csv")
+fx_data = read_forex_data("data/Dataset TD5.csv")
 gbp_rets = get_log_returns(fx_data['GBP'])
 sek_rets = get_log_returns(fx_data['SEK'])
 cad_rets = get_log_returns(fx_data['CAD'])

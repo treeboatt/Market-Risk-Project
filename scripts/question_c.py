@@ -93,7 +93,7 @@ def var_evt(xi, mu, sigma, alpha):
 
 print("\nQuestion C Extreme Value Theory\n")
 
-all_prices, all_dates = read_csv("../data/Natixis.csv")
+all_prices, all_dates = read_csv("data/Natixis.csv")
 rets = get_returns(all_prices)
 print(f"Total returns: {len(rets)}\n")
 
