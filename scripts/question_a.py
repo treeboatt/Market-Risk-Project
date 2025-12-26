@@ -82,7 +82,7 @@ def count_violations(returns, threshold):
             count += 1
     return count
 
-print("\nQuestion A - Non-parametric VaR\n")
+print("\nQuestion A Non parametric VaR\n")
 
 import os
 if os.path.exists("../data/Natixis.csv"):
@@ -90,7 +90,7 @@ if os.path.exists("../data/Natixis.csv"):
 else:
     filename = "data/Natixis.csv"
 
-all_prices, all_dates = read_csv_manual(filename)
+all_prices, all_dates = read_csv(filename)
 print(f"Loaded data: {len(all_prices)} prices\n")
 
 print("a) VaR estimation (2015-2016)")

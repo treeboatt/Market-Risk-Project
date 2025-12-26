@@ -1,7 +1,7 @@
 import math
 import csv
 
-def read_csv_manual(filename):
+def read_csv(filename):
     prices = []
     dates = []
     with open(filename, 'r', encoding='utf-8-sig') as f:
@@ -98,7 +98,7 @@ def var_evt(xi, mu, sigma, alpha):
         var_val = mu - sigma * math.log(-math.log(1 - alpha))
     return var_val
 
-print("\nQuestion C - Extreme Value Theory\n")
+print("\nQuestion C Extreme Value Theory\n")
 
 import os
 if os.path.exists("../data/Natixis.csv"):
@@ -106,7 +106,7 @@ if os.path.exists("../data/Natixis.csv"):
 else:
     filename = "data/Natixis.csv"
 
-all_prices, all_dates = read_csv_manual(filename)
+all_prices, all_dates = read_csv(filename)
 rets = get_returns(all_prices)
 print(f"Total returns: {len(rets)}\n")
 

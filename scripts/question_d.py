@@ -130,7 +130,7 @@ def estimate_sigma(transactions):
     var = sum((r - mean_r)**2 for r in rets) / (n - 1)
     return math.sqrt(var)
 
-print("\nQuestion D - Bouchaud Model\n")
+print("\nQuestion D Bouchaud Model\n")
 
 import os
 if os.path.exists("../data/Dataset TD4.csv"):

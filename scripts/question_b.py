@@ -1,7 +1,7 @@
 import math
 import csv
 
-def read_csv_manual(filename):
+def read_csv(filename):
     prices = []
     dates = []
     with open(filename, 'r', encoding='utf-8-sig') as f:
@@ -88,7 +88,7 @@ def expected_shortfall(returns, alpha=0.05):
         es = var_val
     return es
 
-print("\nQuestion B - Expected Shortfall\n")
+print("\nQuestion B Expected Shortfall\n")
 
 import os
 if os.path.exists("../data/Natixis.csv"):
@@ -96,7 +96,7 @@ if os.path.exists("../data/Natixis.csv"):
 else:
     filename = "data/Natixis.csv"
 
-all_prices, all_dates = read_csv_manual(filename)
+all_prices, all_dates = read_csv(filename)
 train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
 train_rets = get_returns(train_prices)
 

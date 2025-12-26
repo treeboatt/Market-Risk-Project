@@ -114,7 +114,7 @@ def annualized_vol(returns, periods=252):
     daily = math.sqrt(var)
     return daily * math.sqrt(periods)
 
-print("\nQuestion E - Haar Wavelets & Hurst\n")
+print("\nQuestion E Haar Wavelets & Hurst\n")
 
 import os
 if os.path.exists("../data/Dataset TD5.csv"):
