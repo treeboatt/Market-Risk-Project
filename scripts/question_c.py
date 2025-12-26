@@ -98,56 +98,53 @@ def var_evt(xi, mu, sigma, alpha):
         var_val = mu - sigma * math.log(-math.log(1 - alpha))
     return var_val
 
-if __name__ == "__main__":
-    print("\nQuestion C - Extreme Value Theory\n")
+print("\nQuestion C - Extreme Value Theory\n")
 
-    import os
-    if os.path.exists("../data/Natixis.csv"):
-        filename = "../data/Natixis.csv"
-    else:
-        filename = "data/Natixis.csv"
+import os
+if os.path.exists("../data/Natixis.csv"):
+    filename = "../data/Natixis.csv"
+else:
+    filename = "data/Natixis.csv"
 
-    all_prices, all_dates = read_csv_manual(filename)
-    rets = get_returns(all_prices)
-    print(f"Total returns: {len(rets)}\n")
+all_prices, all_dates = read_csv_manual(filename)
+rets = get_returns(all_prices)
+print(f"Total returns: {len(rets)}\n")
 
-    # part a
-    print("a) GEV parameters with Pickands\n")
-    bs = 20
+print("a) GEV parameters with Pickands\n")
+bs = 20
 
-    print("Right tail (gains):")
-    max_vals = extract_block_maxima(rets, bs)
-    xi_r, mu_r, sig_r = estimate_gev_params(max_vals)
-    print(f"Blocks: {len(max_vals)}")
-    print(f"xi={xi_r:.4f}, mu={mu_r:.6f}, sigma={sig_r:.6f}")
+print("Right tail (gains):")
+max_vals = extract_block_maxima(rets, bs)
+xi_r, mu_r, sig_r = estimate_gev_params(max_vals)
+print(f"Blocks: {len(max_vals)}")
+print(f"xi={xi_r:.4f}, mu={mu_r:.6f}, sigma={sig_r:.6f}")
 
-    if xi_r < 0:
-        print("Bounded distribution")
-    elif xi_r > 0:
-        print("Heavy tail")
-    else:
-        print("Gumbel type")
+if xi_r < 0:
+    print("Bounded distribution")
+elif xi_r > 0:
+    print("Heavy tail")
+else:
+    print("Gumbel type")
 
-    print("\nLeft tail (losses):")
-    min_vals = extract_block_minima(rets, bs)
-    losses = [-x for x in min_vals]
-    xi_l, mu_l, sig_l = estimate_gev_params(losses)
-    print(f"Blocks: {len(min_vals)}")
-    print(f"xi={xi_l:.4f}, mu={-mu_l:.6f}, sigma={sig_l:.6f}")
+print("\nLeft tail (losses):")
+min_vals = extract_block_minima(rets, bs)
+losses = [-x for x in min_vals]
+xi_l, mu_l, sig_l = estimate_gev_params(losses)
+print(f"Blocks: {len(min_vals)}")
+print(f"xi={xi_l:.4f}, mu={-mu_l:.6f}, sigma={sig_l:.6f}")
 
-    if xi_l < 0:
-        print("Bounded distribution")
-    elif xi_l > 0:
-        print("Heavy tail")
-    else:
-        print("Gumbel type")
+if xi_l < 0:
+    print("Bounded distribution")
+elif xi_l > 0:
+    print("Heavy tail")
+else:
+    print("Gumbel type")
 
-    # part b
-    print("\n\nb) VaR with EVT\n")
-    levels = [0.90, 0.95, 0.99, 0.995]
+print("\n\nb) VaR with EVT\n")
+levels = [0.90, 0.95, 0.99, 0.995]
 
-    print("VaR losses:")
-    for lv in levels:
-        alpha = 1 - lv
-        var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
-        print(f"  {lv*100:.1f}%: {var_loss:.6f} ({var_loss*100:.4f}%)")
+print("VaR losses:")
+for lv in levels:
+    alpha = 1 - lv
+    var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
+    print(f"  {lv*100:.1f}%: {var_loss:.6f} ({var_loss*100:.4f}%)")

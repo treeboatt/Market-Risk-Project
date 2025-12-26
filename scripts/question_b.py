@@ -88,31 +88,30 @@ def expected_shortfall(returns, alpha=0.05):
         es = var_val
     return es
 
-if __name__ == "__main__":
-    print("\nQuestion B - Expected Shortfall\n")
+print("\nQuestion B - Expected Shortfall\n")
 
-    import os
-    if os.path.exists("../data/Natixis.csv"):
-        filename = "../data/Natixis.csv"
-    else:
-        filename = "data/Natixis.csv"
+import os
+if os.path.exists("../data/Natixis.csv"):
+    filename = "../data/Natixis.csv"
+else:
+    filename = "data/Natixis.csv"
 
-    all_prices, all_dates = read_csv_manual(filename)
-    train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
-    train_rets = get_returns(train_prices)
+all_prices, all_dates = read_csv_manual(filename)
+train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
+train_rets = get_returns(train_prices)
 
-    alpha = 0.05
-    var_val = var_kernel(train_rets, alpha)
-    es_val = expected_shortfall(train_rets, alpha)
+alpha = 0.05
+var_val = var_kernel(train_rets, alpha)
+es_val = expected_shortfall(train_rets, alpha)
 
-    print(f"Period 2015-2016: {len(train_rets)} returns")
-    print(f"Alpha = {alpha}\n")
-    print(f"VaR = {var_val:.6f} ({var_val*100:.4f}%)")
-    print(f"ES  = {es_val:.6f} ({es_val*100:.4f}%)")
-    print(f"\nDifference: {abs(es_val - var_val):.6f}")
-    print(f"Ratio ES/VaR: {abs(es_val/var_val):.4f}")
+print(f"Period 2015-2016: {len(train_rets)} returns")
+print(f"Alpha = {alpha}\n")
+print(f"VaR = {var_val:.6f} ({var_val*100:.4f}%)")
+print(f"ES  = {es_val:.6f} ({es_val*100:.4f}%)")
+print(f"\nDifference: {abs(es_val - var_val):.6f}")
+print(f"Ratio ES/VaR: {abs(es_val/var_val):.4f}")
 
-    if abs(es_val) > abs(var_val):
-        print("=> ES is higher than VaR")
-    else:
-        print("=> ES close to VaR")
+if abs(es_val) > abs(var_val):
+    print("=> ES is higher than VaR")
+else:
+    print("=> ES close to VaR")

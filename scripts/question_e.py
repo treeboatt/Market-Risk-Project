@@ -114,81 +114,78 @@ def annualized_vol(returns, periods=252):
     daily = math.sqrt(var)
     return daily * math.sqrt(periods)
 
-if __name__ == "__main__":
-    print("\nQuestion E - Haar Wavelets & Hurst\n")
+print("\nQuestion E - Haar Wavelets & Hurst\n")
 
-    import os
-    if os.path.exists("../data/Dataset TD5.csv"):
-        filename = "../data/Dataset TD5.csv"
-    else:
-        filename = "data/Dataset TD5.csv"
+import os
+if os.path.exists("../data/Dataset TD5.csv"):
+    filename = "../data/Dataset TD5.csv"
+else:
+    filename = "data/Dataset TD5.csv"
 
-    fx_data = read_forex_data(filename)
-    gbp_rets = get_log_returns(fx_data['GBP'])
-    sek_rets = get_log_returns(fx_data['SEK'])
-    cad_rets = get_log_returns(fx_data['CAD'])
+fx_data = read_forex_data(filename)
+gbp_rets = get_log_returns(fx_data['GBP'])
+sek_rets = get_log_returns(fx_data['SEK'])
+cad_rets = get_log_returns(fx_data['CAD'])
 
-    print(f"Data: {len(fx_data['GBP'])} points\n")
+print(f"Data: {len(fx_data['GBP'])} points\n")
 
-    # part a
-    print("a) Multi-scale correlations\n")
-    scales = [0, 1, 2, 3]
+print("a) Multi-scale correlations\n")
+scales = [0, 1, 2, 3]
 
-    print("GBP/SEK:")
-    for sc in scales:
-        corr = corr_at_scale(gbp_rets, sek_rets, sc)
-        print(f"  scale {sc}: {corr:.4f}")
+print("GBP/SEK:")
+for sc in scales:
+    corr = corr_at_scale(gbp_rets, sek_rets, sc)
+    print(f"  scale {sc}: {corr:.4f}")
 
-    print("\nGBP/CAD:")
-    for sc in scales:
-        corr = corr_at_scale(gbp_rets, cad_rets, sc)
-        print(f"  scale {sc}: {corr:.4f}")
+print("\nGBP/CAD:")
+for sc in scales:
+    corr = corr_at_scale(gbp_rets, cad_rets, sc)
+    print(f"  scale {sc}: {corr:.4f}")
 
-    print("\nSEK/CAD:")
-    for sc in scales:
-        corr = corr_at_scale(sek_rets, cad_rets, sc)
-        print(f"  scale {sc}: {corr:.4f}")
+print("\nSEK/CAD:")
+for sc in scales:
+    corr = corr_at_scale(sek_rets, cad_rets, sc)
+    print(f"  scale {sc}: {corr:.4f}")
 
-    print("\nEpps effect observed: correlation increases with scale")
+print("\nEpps effect observed: correlation increases with scale")
 
-    # part b
-    print("\n\nb) Hurst exponent\n")
+print("\n\nb) Hurst exponent\n")
 
-    h_gbp = hurst_exponent(gbp_rets)
-    h_sek = hurst_exponent(sek_rets)
-    h_cad = hurst_exponent(cad_rets)
+h_gbp = hurst_exponent(gbp_rets)
+h_sek = hurst_exponent(sek_rets)
+h_cad = hurst_exponent(cad_rets)
 
-    print(f"GBP: H={h_gbp:.4f}", end="")
-    if h_gbp > 0.5:
-        print(" (trending)")
-    elif h_gbp < 0.5:
-        print(" (mean reversion)")
-    else:
-        print(" (random walk)")
+print(f"GBP: H={h_gbp:.4f}", end="")
+if h_gbp > 0.5:
+    print(" (trending)")
+elif h_gbp < 0.5:
+    print(" (mean reversion)")
+else:
+    print(" (random walk)")
 
-    print(f"SEK: H={h_sek:.4f}", end="")
-    if h_sek > 0.5:
-        print(" (trending)")
-    elif h_sek < 0.5:
-        print(" (mean reversion)")
-    else:
-        print(" (random walk)")
+print(f"SEK: H={h_sek:.4f}", end="")
+if h_sek > 0.5:
+    print(" (trending)")
+elif h_sek < 0.5:
+    print(" (mean reversion)")
+else:
+    print(" (random walk)")
 
-    print(f"CAD: H={h_cad:.4f}", end="")
-    if h_cad > 0.5:
-        print(" (trending)")
-    elif h_cad < 0.5:
-        print(" (mean reversion)")
-    else:
-        print(" (random walk)")
+print(f"CAD: H={h_cad:.4f}", end="")
+if h_cad > 0.5:
+    print(" (trending)")
+elif h_cad < 0.5:
+    print(" (mean reversion)")
+else:
+    print(" (random walk)")
 
-    print("\n\nAnnualized volatility:")
-    per = 96 * 252
+print("\n\nAnnualized volatility:")
+per = 96 * 252
 
-    vol_gbp = annualized_vol(gbp_rets, per)
-    vol_sek = annualized_vol(sek_rets, per)
-    vol_cad = annualized_vol(cad_rets, per)
+vol_gbp = annualized_vol(gbp_rets, per)
+vol_sek = annualized_vol(sek_rets, per)
+vol_cad = annualized_vol(cad_rets, per)
 
-    print(f"GBP: {vol_gbp:.4f} ({vol_gbp*100:.2f}%)")
-    print(f"SEK: {vol_sek:.4f} ({vol_sek*100:.2f}%)")
-    print(f"CAD: {vol_cad:.4f} ({vol_cad*100:.2f}%)")
+print(f"GBP: {vol_gbp:.4f} ({vol_gbp*100:.2f}%)")
+print(f"SEK: {vol_sek:.4f} ({vol_sek*100:.2f}%)")
+print(f"CAD: {vol_cad:.4f} ({vol_cad*100:.2f}%)")

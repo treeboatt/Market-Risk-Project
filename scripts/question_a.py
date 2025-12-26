@@ -1,7 +1,7 @@
 import math
 import csv
 
-def read_csv_manual(filename):
+def read_csv(filename):
     prices = []
     dates = []
     with open(filename, 'r', encoding='utf-8-sig') as f:
@@ -82,47 +82,44 @@ def count_violations(returns, threshold):
             count += 1
     return count
 
-if __name__ == "__main__":
-    print("\nQuestion A - Non-parametric VaR\n")
+print("\nQuestion A - Non-parametric VaR\n")
 
-    import os
-    if os.path.exists("../data/Natixis.csv"):
-        filename = "../data/Natixis.csv"
-    else:
-        filename = "data/Natixis.csv"
+import os
+if os.path.exists("../data/Natixis.csv"):
+    filename = "../data/Natixis.csv"
+else:
+    filename = "data/Natixis.csv"
 
-    all_prices, all_dates = read_csv_manual(filename)
-    print(f"Loaded data: {len(all_prices)} prices\n")
+all_prices, all_dates = read_csv_manual(filename)
+print(f"Loaded data: {len(all_prices)} prices\n")
 
-    # part a
-    print("a) VaR estimation (2015-2016)")
-    train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
-    train_returns = get_returns(train_prices)
+print("a) VaR estimation (2015-2016)")
+train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
+train_returns = get_returns(train_prices)
 
-    alpha = 0.05
-    var_val = var_kernel(train_returns, alpha)
-    print(f"Number of returns: {len(train_returns)}")
-    print(f"Alpha = {alpha} (confidence {(1-alpha)*100}%)")
-    print(f"VaR = {var_val:.6f} ({var_val*100:.4f}%)\n")
+alpha = 0.05
+var_val = var_kernel(train_returns, alpha)
+print(f"Number of returns: {len(train_returns)}")
+print(f"Alpha = {alpha} (confidence {(1-alpha)*100}%)")
+print(f"VaR = {var_val:.6f} ({var_val*100:.4f}%)\n")
 
-    # part b
-    print("b) Backtesting (2017-2018)")
-    test_prices = filter_by_year(all_prices, all_dates, 2017, 2018)
-    test_returns = get_returns(test_prices)
+print("b) Backtesting (2017-2018)")
+test_prices = filter_by_year(all_prices, all_dates, 2017, 2018)
+test_returns = get_returns(test_prices)
 
-    viols = count_violations(test_returns, var_val)
-    n_test = len(test_returns)
-    real_rate = viols / n_test
+viols = count_violations(test_returns, var_val)
+n_test = len(test_returns)
+real_rate = viols / n_test
 
-    print(f"Test returns: {n_test}")
-    print(f"Violations: {viols}")
-    print(f"Actual rate: {real_rate*100:.2f}%")
-    print(f"Expected rate: {alpha*100}%")
+print(f"Test returns: {n_test}")
+print(f"Violations: {viols}")
+print(f"Actual rate: {real_rate*100:.2f}%")
+print(f"Expected rate: {alpha*100}%")
 
-    diff = abs(real_rate - alpha)
-    if diff < 0.02:
-        print("=> Model performs well")
-    elif real_rate > alpha:
-        print("=> Underestimates risk")
-    else:
-        print("=> Overestimates risk")
+diff = abs(real_rate - alpha)
+if diff < 0.02:
+    print("=> Model performs well")
+elif real_rate > alpha:
+    print("=> Underestimates risk")
+else:
+    print("=> Overestimates risk")

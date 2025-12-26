@@ -130,36 +130,35 @@ def estimate_sigma(transactions):
     var = sum((r - mean_r)**2 for r in rets) / (n - 1)
     return math.sqrt(var)
 
-if __name__ == "__main__":
-    print("\nQuestion D - Bouchaud Model\n")
+print("\nQuestion D - Bouchaud Model\n")
 
-    import os
-    if os.path.exists("../data/Dataset TD4.csv"):
-        filename = "../data/Dataset TD4.csv"
-    else:
-        filename = "data/Dataset TD4.csv"
+import os
+if os.path.exists("../data/Dataset TD4.csv"):
+    filename = "../data/Dataset TD4.csv"
+else:
+    filename = "data/Dataset TD4.csv"
 
-    trans = read_transaction_data(filename)
-    print(f"Transactions: {len(trans)}\n")
+trans = read_transaction_data(filename)
+print(f"Transactions: {len(trans)}\n")
 
-    lam, delta = estimate_bouchaud_params(trans)
-    tau, ac = estimate_tau(trans)
-    sig = estimate_sigma(trans)
+lam, delta = estimate_bouchaud_params(trans)
+tau, ac = estimate_tau(trans)
+sig = estimate_sigma(trans)
 
-    print("Results:")
-    print(f"lambda = {lam:.6f}")
-    print(f"delta = {delta:.4f}", end="")
-    if delta > 0.5:
-        print(" (strong volume effect)")
-    else:
-        print(" (weak volume effect)")
+print("Results:")
+print(f"lambda = {lam:.6f}")
+print(f"delta = {delta:.4f}", end="")
+if delta > 0.5:
+    print(" (strong volume effect)")
+else:
+    print(" (weak volume effect)")
 
-    print(f"tau = {tau:.6f} days")
-    print(f"sigma = {sig:.6f} ({sig*100:.4f}%)")
-    print(f"\nAutocorrelation: {ac:.4f}")
+print(f"tau = {tau:.6f} days")
+print(f"sigma = {sig:.6f} ({sig*100:.4f}%)")
+print(f"\nAutocorrelation: {ac:.4f}")
 
-    print("\nModel", end=" ")
-    if 0.3 < delta < 0.7 and tau > 0:
-        print("works correctly")
-    else:
-        print("needs adjustments")
+print("\nModel", end=" ")
+if 0.3 < delta < 0.7 and tau > 0:
+    print("works correctly")
+else:
+    print("needs adjustments")
