@@ -1,29 +1,16 @@
 import math
-import csv
 
 def read_forex_data(filename):
     data = {'GBP': [], 'SEK': [], 'CAD': []}
-    with open(filename, 'r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f, delimiter=';')
-        next(reader)
-        next(reader)
-
-        for row in reader:
-            if len(row) >= 11:
-                try:
-                    gbp_h = float(row[1].replace(',', '.'))
-                    gbp_l = float(row[2].replace(',', '.'))
-                    data['GBP'].append((gbp_h + gbp_l) / 2)
-
-                    sek_h = float(row[5].replace(',', '.'))
-                    sek_l = float(row[6].replace(',', '.'))
-                    data['SEK'].append((sek_h + sek_l) / 2)
-
-                    cad_h = float(row[9].replace(',', '.'))
-                    cad_l = float(row[10].replace(',', '.'))
-                    data['CAD'].append((cad_h + cad_l) / 2)
-                except (ValueError, IndexError):
-                    continue
+    f = open(filename, 'r')
+    lines = f.readlines()[2:]
+    for line in lines:
+        parts = line.strip().split(';')
+        if len(parts) >= 11:
+            data['GBP'].append((float(parts[1].replace(',', '.')) + float(parts[2].replace(',', '.'))) / 2)
+            data['SEK'].append((float(parts[5].replace(',', '.')) + float(parts[6].replace(',', '.'))) / 2)
+            data['CAD'].append((float(parts[9].replace(',', '.')) + float(parts[10].replace(',', '.'))) / 2)
+    f.close()
     return data
 
 def get_log_returns(prices):
@@ -56,26 +43,34 @@ def haar_transform(data):
     return result, detail
 
 def corr_at_scale(r1, r2, scale):
-    _, d1 = haar_transform(r1)
-    _, d2 = haar_transform(r2)
+    if scale == 0:
+        data1 = r1
+        data2 = r2
+    else:
+        n1 = len(r1)
+        n2 = len(r2)
+        step = 2 ** scale
 
-    n = len(d1)
-    bs = 2 ** scale
-    start = max(0, n - bs)
+        agg1 = []
+        agg2 = []
 
-    c1 = d1[start:n]
-    c2 = d2[start:n]
+        for i in range(0, min(n1, n2) - step + 1, step):
+            agg1.append(sum(r1[i:i+step]))
+            agg2.append(sum(r2[i:i+step]))
 
-    if len(c1) == 0 or len(c2) == 0:
+        data1 = agg1
+        data2 = agg2
+
+    if len(data1) == 0 or len(data2) == 0:
         return 0.0
 
-    nc = len(c1)
-    m1 = sum(c1) / nc
-    m2 = sum(c2) / nc
+    n = len(data1)
+    m1 = sum(data1) / n
+    m2 = sum(data2) / n
 
-    cov = sum((c1[i] - m1) * (c2[i] - m2) for i in range(nc))
-    v1 = sum((x - m1)**2 for x in c1)
-    v2 = sum((x - m2)**2 for x in c2)
+    cov = sum((data1[i] - m1) * (data2[i] - m2) for i in range(n))
+    v1 = sum((x - m1)**2 for x in data1)
+    v2 = sum((x - m2)**2 for x in data2)
 
     if v1 == 0 or v2 == 0:
         return 0.0
@@ -116,13 +111,7 @@ def annualized_vol(returns, periods=252):
 
 print("\nQuestion E Haar Wavelets & Hurst\n")
 
-import os
-if os.path.exists("../data/Dataset TD5.csv"):
-    filename = "../data/Dataset TD5.csv"
-else:
-    filename = "data/Dataset TD5.csv"
-
-fx_data = read_forex_data(filename)
+fx_data = read_forex_data("../data/Dataset TD5.csv")
 gbp_rets = get_log_returns(fx_data['GBP'])
 sek_rets = get_log_returns(fx_data['SEK'])
 cad_rets = get_log_returns(fx_data['CAD'])

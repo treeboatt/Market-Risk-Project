@@ -1,36 +1,19 @@
 import math
-import csv
 
 def read_transaction_data(filename):
     transactions = []
-    with open(filename, 'r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f, delimiter=';')
-        next(reader)  # skip header
-
-        for row in reader:
-            if len(row) >= 5:
-                try:
-                    t = float(row[0].replace(',', '.'))
-                    spread = float(row[1].replace(',', '.'))
-
-                    if row[2].strip() != '':
-                        vol = float(row[2].replace(',', '.'))
-                    else:
-                        vol = None
-
-                    sign = int(row[3].replace(',', '.'))
-                    price = float(row[4].replace(',', '.'))
-
-                    transactions.append({
-                        'time': t,
-                        'spread': spread,
-                        'volume': vol,
-                        'sign': sign,
-                        'price': price
-                    })
-                except ValueError:
-                    continue
-
+    f = open(filename, 'r')
+    lines = f.readlines()[1:]
+    for line in lines:
+        parts = line.strip().split(';')
+        if len(parts) >= 5:
+            t = float(parts[0].replace(',', '.'))
+            spread = float(parts[1].replace(',', '.'))
+            vol = float(parts[2].replace(',', '.')) if parts[2].strip() else None
+            sign = int(parts[3].replace(',', '.'))
+            price = float(parts[4].replace(',', '.'))
+            transactions.append({'time': t, 'spread': spread, 'volume': vol, 'sign': sign, 'price': price})
+    f.close()
     return transactions
 
 
@@ -132,13 +115,7 @@ def estimate_sigma(transactions):
 
 print("\nQuestion D Bouchaud Model\n")
 
-import os
-if os.path.exists("../data/Dataset TD4.csv"):
-    filename = "../data/Dataset TD4.csv"
-else:
-    filename = "data/Dataset TD4.csv"
-
-trans = read_transaction_data(filename)
+trans = read_transaction_data("../data/Dataset TD4.csv")
 print(f"Transactions: {len(trans)}\n")
 
 lam, delta = estimate_bouchaud_params(trans)

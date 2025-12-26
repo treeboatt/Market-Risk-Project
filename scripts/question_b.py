@@ -1,20 +1,14 @@
 import math
-import csv
 
 def read_csv(filename):
-    prices = []
-    dates = []
-    with open(filename, 'r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f, delimiter=';')
-        for row in reader:
-            if len(row) >= 2:
-                try:
-                    date = row[0]
-                    price_str = row[1].replace(',', '.')
-                    prices.append(float(price_str))
-                    dates.append(date)
-                except ValueError:
-                    continue
+    prices, dates = [], []
+    f = open(filename, 'r')
+    for line in f:
+        parts = line.strip().split(';')
+        if len(parts) >= 2:
+            dates.append(parts[0])
+            prices.append(float(parts[1].replace(',', '.')))
+    f.close()
     return prices, dates
 
 def get_returns(prices):
@@ -66,7 +60,6 @@ def var_kernel(returns, alpha=0.05):
 
     steps = 1000
     dx = (upper - lower) / steps
-
     x = lower
     cumul = 0.0
     while cumul < alpha and x < upper:
@@ -81,7 +74,7 @@ def expected_shortfall(returns, alpha=0.05):
     for r in returns:
         if r < var_val:
             tail_losses.append(r)
-
+            
     if len(tail_losses) > 0:
         es = sum(tail_losses) / len(tail_losses)
     else:
@@ -90,13 +83,7 @@ def expected_shortfall(returns, alpha=0.05):
 
 print("\nQuestion B Expected Shortfall\n")
 
-import os
-if os.path.exists("../data/Natixis.csv"):
-    filename = "../data/Natixis.csv"
-else:
-    filename = "data/Natixis.csv"
-
-all_prices, all_dates = read_csv(filename)
+all_prices, all_dates = read_csv("../data/Natixis.csv")
 train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
 train_rets = get_returns(train_prices)
 

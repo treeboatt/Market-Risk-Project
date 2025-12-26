@@ -1,6 +1,3 @@
-import subprocess
-import sys
-
 print("\n" + "="*50)
 print("  MARKET RISK PROJECT 2025-2026")
 print("="*50 + "\n")
@@ -18,7 +15,7 @@ choice = input("Choice: ").strip().upper()
 
 if choice == 'Q':
     print("Goodbye!")
-    sys.exit(0)
+    exit()
 
 questions_to_run = []
 
@@ -28,7 +25,7 @@ elif choice in ['A', 'B', 'C', 'D', 'E']:
     questions_to_run = [choice]
 else:
     print("Invalid choice")
-    sys.exit(1)
+    exit()
 
 for q in questions_to_run:
     print("\n" + "="*50)
@@ -36,7 +33,7 @@ for q in questions_to_run:
     print("="*50)
 
     filename = f"question_{q.lower()}.py"
-    subprocess.run([sys.executable, filename])
+    exec(open(filename).read())
 
 print("\n" + "="*50)
 print("Done!")

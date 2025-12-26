@@ -1,20 +1,14 @@
 import math
-import csv
 
 def read_csv(filename):
-    prices = []
-    dates = []
-    with open(filename, 'r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f, delimiter=';')
-        for row in reader:
-            if len(row) >= 2:
-                try:
-                    date = row[0]
-                    price_str = row[1].replace(',', '.')
-                    prices.append(float(price_str))
-                    dates.append(date)
-                except ValueError:
-                    continue
+    prices, dates = [], []
+    f = open(filename, 'r')
+    for line in f:
+        parts = line.strip().split(';')
+        if len(parts) >= 2:
+            dates.append(parts[0])
+            prices.append(float(parts[1].replace(',', '.')))
+    f.close()
     return prices, dates
 
 def get_returns(prices):
@@ -100,13 +94,7 @@ def var_evt(xi, mu, sigma, alpha):
 
 print("\nQuestion C Extreme Value Theory\n")
 
-import os
-if os.path.exists("../data/Natixis.csv"):
-    filename = "../data/Natixis.csv"
-else:
-    filename = "data/Natixis.csv"
-
-all_prices, all_dates = read_csv(filename)
+all_prices, all_dates = read_csv("../data/Natixis.csv")
 rets = get_returns(all_prices)
 print(f"Total returns: {len(rets)}\n")
 
