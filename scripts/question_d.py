@@ -25,7 +25,7 @@ def calc_returns(transactions):
         rets.append((p1 - p0) / p0)
     return rets
 
-def estimate_bouchaud_params(transactions):
+def get_bouchaud_params(transactions):
     price_chg = []
     vols = []
 
@@ -80,13 +80,14 @@ def estimate_bouchaud_params(transactions):
 
     return lam, delta
 
-def estimate_tau(transactions):
+def get_tau(transactions):
     rets = calc_returns(transactions)
     n = len(rets)
 
     mean_r = sum(rets) / n
     var = sum((r - mean_r)**2 for r in rets) / (n - 1)
 
+    # compute autocorrelation
     autocorr = 0.0
     for i in range(n - 1):
         autocorr += (rets[i] - mean_r) * (rets[i+1] - mean_r)
@@ -106,7 +107,7 @@ def estimate_tau(transactions):
 
     return tau, autocorr
 
-def estimate_sigma(transactions):
+def get_sigma(transactions):
     rets = calc_returns(transactions)
     n = len(rets)
     mean_r = sum(rets) / n
@@ -115,27 +116,28 @@ def estimate_sigma(transactions):
 
 print("\nQuestion D Bouchaud Model\n")
 
+
 trans = read_transaction_data("../data/Dataset TD4.csv")
 print(f"Transactions: {len(trans)}\n")
 
-lam, delta = estimate_bouchaud_params(trans)
-tau, ac = estimate_tau(trans)
-sig = estimate_sigma(trans)
+lam, delta = get_bouchaud_params(trans)
+tau, ac = get_tau(trans)
+sig = get_sigma(trans)
 
 print("Results:")
-print(f"lambda = {lam:.6f}")
-print(f"delta = {delta:.4f}", end="")
+print(f"lambda = {lam:.4f}")
+print(f"delta = {delta:.3f}", end="")
 if delta > 0.5:
     print(" (strong volume effect)")
 else:
     print(" (weak volume effect)")
 
-print(f"tau = {tau:.6f} days")
-print(f"sigma = {sig:.6f} ({sig*100:.4f}%)")
-print(f"\nAutocorrelation: {ac:.4f}")
+print(f"tau = {tau:.4f} days")
+print(f"sigma = {sig:.4f} soit {sig*100:.2f}%")
+print(f"\nAutocorrelation: {ac:.3f}")
 
 print("\nModel", end=" ")
 if 0.3 < delta < 0.7 and tau > 0:
-    print("works correctly")
+    print("ok")
 else:
     print("needs adjustments")

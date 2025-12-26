@@ -37,12 +37,12 @@ def biweight_kernel(u):
         return (15.0/16.0) * ((1 - u*u) ** 2)
     return 0.0
 
-def compute_bandwidth(data):
+def bandwidth(data):
     n = len(data)
-    mean_val = sum(data) / n
-    variance = sum((x - mean_val)**2 for x in data) / (n - 1)
-    std_dev = math.sqrt(variance)
-    h = 1.06 * std_dev * (n ** (-0.2))
+    m = sum(data) / n
+    var = sum((x - m)**2 for x in data) / (n - 1)
+    sd = math.sqrt(var)
+    h = 1.1 * sd * (n ** -0.2)
     return h
 
 def kernel_density(x, data, h):
@@ -54,7 +54,7 @@ def kernel_density(x, data, h):
     return total / (n * h)
 
 def var_kernel(returns, alpha=0.05):
-    h = compute_bandwidth(returns)
+    h = bandwidth(returns)
     lower = min(returns) - 3*h
     upper = max(returns) + 3*h
 
@@ -74,7 +74,7 @@ def expected_shortfall(returns, alpha=0.05):
     for r in returns:
         if r < var_val:
             tail_losses.append(r)
-            
+
     if len(tail_losses) > 0:
         es = sum(tail_losses) / len(tail_losses)
     else:
@@ -93,12 +93,12 @@ es_val = expected_shortfall(train_rets, alpha)
 
 print(f"Period 2015-2016: {len(train_rets)} returns")
 print(f"Alpha = {alpha}\n")
-print(f"VaR = {var_val:.6f} ({var_val*100:.4f}%)")
-print(f"ES  = {es_val:.6f} ({es_val*100:.4f}%)")
-print(f"\nDifference: {abs(es_val - var_val):.6f}")
-print(f"Ratio ES/VaR: {abs(es_val/var_val):.4f}")
+print(f"VaR = {var_val:.4f} soit {var_val*100:.2f}%")
+print(f"ES  = {es_val:.4f} soit {es_val*100:.2f}%")
+print(f"\nDifference: {abs(es_val - var_val):.4f}")
+print(f"Ratio ES/VaR = {abs(es_val/var_val):.3f}")
 
 if abs(es_val) > abs(var_val):
-    print("=> ES is higher than VaR")
+    print("ES higher than VaR")
 else:
-    print("=> ES close to VaR")
+    print("ES close to VaR")

@@ -7,9 +7,9 @@ def read_forex_data(filename):
     for line in lines:
         parts = line.strip().split(';')
         if len(parts) >= 11:
-            data['GBP'].append((float(parts[1].replace(',', '.')) + float(parts[2].replace(',', '.'))) / 2)
-            data['SEK'].append((float(parts[5].replace(',', '.')) + float(parts[6].replace(',', '.'))) / 2)
-            data['CAD'].append((float(parts[9].replace(',', '.')) + float(parts[10].replace(',', '.'))) / 2)
+            data['GBP'].append((float(parts[1].replace(',', '.')) + float(parts[2].replace(',', '.'))) / 2.0)
+            data['SEK'].append((float(parts[5].replace(',', '.')) + float(parts[6].replace(',', '.'))) / 2.0)
+            data['CAD'].append((float(parts[9].replace(',', '.')) + float(parts[10].replace(',', '.'))) / 2.0)
     f.close()
     return data
 
@@ -53,7 +53,7 @@ def corr_at_scale(r1, r2, scale):
 
         agg1 = []
         agg2 = []
-
+        # aggregate returns by blocks
         for i in range(0, min(n1, n2) - step + 1, step):
             agg1.append(sum(r1[i:i+step]))
             agg2.append(sum(r2[i:i+step]))
@@ -109,6 +109,7 @@ def annualized_vol(returns, periods=252):
     daily = math.sqrt(var)
     return daily * math.sqrt(periods)
 
+
 print("\nQuestion E Haar Wavelets & Hurst\n")
 
 fx_data = read_forex_data("../data/Dataset TD5.csv")
@@ -124,17 +125,17 @@ scales = [0, 1, 2, 3]
 print("GBP/SEK:")
 for sc in scales:
     corr = corr_at_scale(gbp_rets, sek_rets, sc)
-    print(f"  scale {sc}: {corr:.4f}")
+    print(f"  scale {sc}: {corr:.3f}")
 
 print("\nGBP/CAD:")
 for sc in scales:
     corr = corr_at_scale(gbp_rets, cad_rets, sc)
-    print(f"  scale {sc}: {corr:.4f}")
+    print(f"  scale {sc}: {corr:.3f}")
 
 print("\nSEK/CAD:")
 for sc in scales:
     corr = corr_at_scale(sek_rets, cad_rets, sc)
-    print(f"  scale {sc}: {corr:.4f}")
+    print(f"  scale {sc}: {corr:.3f}")
 
 print("\nEpps effect observed: correlation increases with scale")
 
@@ -175,6 +176,6 @@ vol_gbp = annualized_vol(gbp_rets, per)
 vol_sek = annualized_vol(sek_rets, per)
 vol_cad = annualized_vol(cad_rets, per)
 
-print(f"GBP: {vol_gbp:.4f} ({vol_gbp*100:.2f}%)")
-print(f"SEK: {vol_sek:.4f} ({vol_sek*100:.2f}%)")
-print(f"CAD: {vol_cad:.4f} ({vol_cad*100:.2f}%)")
+print(f"GBP: {vol_gbp:.3f} soit {vol_gbp*100:.1f}%")
+print(f"SEK: {vol_sek:.3f} soit {vol_sek*100:.1f}%")
+print(f"CAD: {vol_cad:.3f} soit {vol_cad*100:.1f}%")

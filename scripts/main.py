@@ -8,7 +8,7 @@ print("  [B] Expected Shortfall")
 print("  [C] Extreme Value Theory")
 print("  [D] Bouchaud Model")
 print("  [E] Haar Wavelets & Hurst")
-print("  [T] Run all")
+print("  [T] Run all questions")
 print("  [Q] Quit\n")
 
 choice = input("Choice: ").strip().upper()

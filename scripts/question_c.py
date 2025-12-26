@@ -5,7 +5,7 @@ def read_csv(filename):
     f = open(filename, 'r')
     for line in f:
         parts = line.strip().split(';')
-        if len(parts) >= 2:
+        if len(parts)>=2:
             dates.append(parts[0])
             prices.append(float(parts[1].replace(',', '.')))
     f.close()
@@ -18,16 +18,17 @@ def get_returns(prices):
         returns.append(r)
     return returns
 
-def extract_block_maxima(data, bs):
+def get_max_blocks(data, bs):
     maxima = []
     nb = len(data) // bs
+    # loop over blocks
     for i in range(nb):
         block = data[i*bs:(i+1)*bs]
         if len(block) > 0:
             maxima.append(max(block))
     return maxima
 
-def extract_block_minima(data, bs):
+def get_min_blocks(data, bs):
     minima = []
     nb = len(data) // bs
     for i in range(nb):
@@ -36,7 +37,7 @@ def extract_block_minima(data, bs):
             minima.append(min(block))
     return minima
 
-def pickands_estimator(extremes):
+def pickands(extremes):
     n = len(extremes)
     extremes_sorted = sorted(extremes)
 
@@ -50,8 +51,6 @@ def pickands_estimator(extremes):
 
     if idx3 < 0:
         idx3 = 0
-    if idx2 < 0:
-        idx2 = 0
 
     x1 = extremes_sorted[idx1]
     x2 = extremes_sorted[idx2]
@@ -63,7 +62,7 @@ def pickands_estimator(extremes):
     if denom != 0 and num > 0:
         ratio = num / denom
         if ratio > 0:
-            xi = math.log(ratio) / math.log(2.0)
+            xi = math.log(ratio) / math.log(2)
         else:
             xi = 0.0
     else:
@@ -71,16 +70,16 @@ def pickands_estimator(extremes):
 
     return xi
 
-def estimate_gev_params(extremes):
-    xi = pickands_estimator(extremes)
+def get_gev_params(extremes):
+    xi = pickands(extremes)
 
     n = len(extremes)
     mean_ext = sum(extremes) / n
     var = sum((x - mean_ext)**2 for x in extremes) / (n - 1)
     std_ext = math.sqrt(var)
 
-    sigma = std_ext * 0.78
-    mu = mean_ext - 0.577 * sigma
+    sigma = std_ext * 0.8
+    mu = mean_ext - 0.58 * sigma
 
     return xi, mu, sigma
 
@@ -102,10 +101,10 @@ print("a) GEV parameters with Pickands\n")
 bs = 20
 
 print("Right tail (gains):")
-max_vals = extract_block_maxima(rets, bs)
-xi_r, mu_r, sig_r = estimate_gev_params(max_vals)
+max_vals = get_max_blocks(rets, bs)
+xi_r, mu_r, sig_r = get_gev_params(max_vals)
 print(f"Blocks: {len(max_vals)}")
-print(f"xi={xi_r:.4f}, mu={mu_r:.6f}, sigma={sig_r:.6f}")
+print(f"xi={xi_r:.3f}, mu={mu_r:.4f}, sigma={sig_r:.4f}")
 
 if xi_r < 0:
     print("Bounded distribution")
@@ -115,11 +114,11 @@ else:
     print("Gumbel type")
 
 print("\nLeft tail (losses):")
-min_vals = extract_block_minima(rets, bs)
+min_vals = get_min_blocks(rets, bs)
 losses = [-x for x in min_vals]
-xi_l, mu_l, sig_l = estimate_gev_params(losses)
+xi_l, mu_l, sig_l = get_gev_params(losses)
 print(f"Blocks: {len(min_vals)}")
-print(f"xi={xi_l:.4f}, mu={-mu_l:.6f}, sigma={sig_l:.6f}")
+print(f"xi={xi_l:.3f}, mu={-mu_l:.4f}, sigma={sig_l:.4f}")
 
 if xi_l < 0:
     print("Bounded distribution")
@@ -135,4 +134,4 @@ print("VaR losses:")
 for lv in levels:
     alpha = 1 - lv
     var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
-    print(f"  {lv*100:.1f}%: {var_loss:.6f} ({var_loss*100:.4f}%)")
+    print(f"  {lv*100:.1f}%: {var_loss:.4f} soit {var_loss*100:.2f}%")
