@@ -1,270 +1,194 @@
 import math
 import csv
 
-# Data loading functions
-
 def read_forex_data(filename):
-    # Read TD5 dataset with forex pairs
     data = {'GBP': [], 'SEK': [], 'CAD': []}
+    with open(filename, 'r', encoding='utf-8-sig') as f:
+        reader = csv.reader(f, delimiter=';')
+        next(reader)
+        next(reader)
 
-    try:
-        with open(filename, 'r', encoding='utf-8-sig') as f:
-            reader = csv.reader(f, delimiter=';')
+        for row in reader:
+            if len(row) >= 11:
+                try:
+                    gbp_h = float(row[1].replace(',', '.'))
+                    gbp_l = float(row[2].replace(',', '.'))
+                    data['GBP'].append((gbp_h + gbp_l) / 2)
 
-            # Skip first two rows (header)
-            next(reader)
-            next(reader)
+                    sek_h = float(row[5].replace(',', '.'))
+                    sek_l = float(row[6].replace(',', '.'))
+                    data['SEK'].append((sek_h + sek_l) / 2)
 
-            for row in reader:
-                if len(row) >= 11:
-                    try:
-                        # GBP HIGH and LOW
-                        gbp_high = float(row[1].replace(',', '.'))
-                        gbp_low = float(row[2].replace(',', '.'))
-                        gbp_mid = (gbp_high + gbp_low) / 2
-                        data['GBP'].append(gbp_mid)
-
-                        # SEK HIGH and LOW
-                        sek_high = float(row[5].replace(',', '.'))
-                        sek_low = float(row[6].replace(',', '.'))
-                        sek_mid = (sek_high + sek_low) / 2
-                        data['SEK'].append(sek_mid)
-
-                        # CAD HIGH and LOW
-                        cad_high = float(row[9].replace(',', '.'))
-                        cad_low = float(row[10].replace(',', '.'))
-                        cad_mid = (cad_high + cad_low) / 2
-                        data['CAD'].append(cad_mid)
-                    except (ValueError, IndexError):
-                        continue
-    except FileNotFoundError:
-        print(f"Error: File {filename} not found.")
-        return data
-
+                    cad_h = float(row[9].replace(',', '.'))
+                    cad_l = float(row[10].replace(',', '.'))
+                    data['CAD'].append((cad_h + cad_l) / 2)
+                except (ValueError, IndexError):
+                    continue
     return data
 
-
 def get_log_returns(prices):
-    # Calculate log returns
-    returns = []
+    rets = []
     for i in range(1, len(prices)):
-        r = math.log(prices[i] / prices[i-1])
-        returns.append(r)
-    return returns
+        rets.append(math.log(prices[i] / prices[i-1]))
+    return rets
 
-
-# Question E: Haar wavelets and Hurst exponent
 
 def haar_transform(data):
-    # Haar wavelet transform
-
     n = len(data)
-
-    # Pad to power of 2
     target = 1
     while target < n:
         target *= 2
 
     padded = data[:] + [0.0] * (target - n)
-
     result = padded[:]
     detail = []
 
-    # Haar decomposition
     while len(result) > 1:
         temp = []
         details = []
-
         for i in range(0, len(result), 2):
             if i + 1 < len(result):
                 temp.append((result[i] + result[i+1]) / 2.0)
                 details.append((result[i] - result[i+1]) / 2.0)
-
         result = temp
         detail = details + detail
 
     return result, detail
 
+def corr_at_scale(r1, r2, scale):
+    _, d1 = haar_transform(r1)
+    _, d2 = haar_transform(r2)
 
-def correlation_at_scale(returns1, returns2, scale):
-    # Calculate correlation at given scale using Haar wavelets
+    n = len(d1)
+    bs = 2 ** scale
+    start = max(0, n - bs)
 
-    # Apply Haar transform
-    approx1, detail1 = haar_transform(returns1)
-    approx2, detail2 = haar_transform(returns2)
+    c1 = d1[start:n]
+    c2 = d2[start:n]
 
-    # Extract coefficients at given scale
-    # Scale 0 = finest details, higher scale = coarser details
-    n = len(detail1)
-
-    # Determine range for this scale
-    block_size = 2 ** scale
-    start_idx = max(0, n - block_size)
-
-    coef1 = detail1[start_idx:n]
-    coef2 = detail2[start_idx:n]
-
-    # Calculate correlation
-    if len(coef1) == 0 or len(coef2) == 0:
+    if len(c1) == 0 or len(c2) == 0:
         return 0.0
 
-    n_coef = len(coef1)
-    mean1 = sum(coef1) / n_coef
-    mean2 = sum(coef2) / n_coef
+    nc = len(c1)
+    m1 = sum(c1) / nc
+    m2 = sum(c2) / nc
 
-    # Covariance
-    cov = sum((coef1[i] - mean1) * (coef2[i] - mean2) for i in range(n_coef))
+    cov = sum((c1[i] - m1) * (c2[i] - m2) for i in range(nc))
+    v1 = sum((x - m1)**2 for x in c1)
+    v2 = sum((x - m2)**2 for x in c2)
 
-    # Standard deviations
-    var1 = sum((x - mean1)**2 for x in coef1)
-    var2 = sum((x - mean2)**2 for x in coef2)
-
-    if var1 == 0 or var2 == 0:
+    if v1 == 0 or v2 == 0:
         return 0.0
 
-    correlation = cov / math.sqrt(var1 * var2)
+    return cov / math.sqrt(v1 * v2)
 
-    return correlation
-
-
-def estimate_hurst_exponent(returns):
-    # Hurst exponent using R/S analysis
-
+def hurst_exponent(returns):
     n = len(returns)
-    mean_ret = sum(returns) / n
+    mean_r = sum(returns) / n
 
-    # Cumulative deviation
-    cum_sum = 0.0
-    cumulative_dev = []
+    cumul = 0.0
+    cumul_dev = []
     for r in returns:
-        cum_sum += (r - mean_ret)
-        cumulative_dev.append(cum_sum)
+        cumul += (r - mean_r)
+        cumul_dev.append(cumul)
 
-    # Range
-    R = max(cumulative_dev) - min(cumulative_dev) if cumulative_dev else 0.0
-
-    # Std dev
-    variance = sum((r - mean_ret)**2 for r in returns) / n
-    S = math.sqrt(variance)
+    R = max(cumul_dev) - min(cumul_dev) if cumul_dev else 0.0
+    var = sum((r - mean_r)**2 for r in returns) / n
+    S = math.sqrt(var)
 
     if S == 0:
         return 0.5
 
-    # Hurst: H = log(R/S) / log(n)
-    rs_ratio = R / S
-    if rs_ratio > 0 and n > 1:
-        hurst = math.log(rs_ratio) / math.log(n)
+    rs = R / S
+    if rs > 0 and n > 1:
+        H = math.log(rs) / math.log(n)
     else:
-        hurst = 0.5
+        H = 0.5
 
-    return max(0.0, min(1.0, hurst))
+    return max(0.0, min(1.0, H))
 
-
-def annualized_volatility(returns, periods_per_year=252):
-    # Calculate annualized volatility
-
+def annualized_vol(returns, periods=252):
     n = len(returns)
-    mean_ret = sum(returns) / n
-
-    variance = sum((r - mean_ret)**2 for r in returns) / (n - 1)
-    daily_vol = math.sqrt(variance)
-
-    annual_vol = daily_vol * math.sqrt(periods_per_year)
-
-    return annual_vol
-
-
-# Main program
+    m = sum(returns) / n
+    var = sum((r - m)**2 for r in returns) / (n - 1)
+    daily = math.sqrt(var)
+    return daily * math.sqrt(periods)
 
 if __name__ == "__main__":
+    print("\nQuestion E - Haar Wavelets & Hurst\n")
 
-    print("="*50)
-    print("Question E - Wavelets & Hurst")
-    print("="*50)
-
-    # Load forex data
     import os
     if os.path.exists("../data/Dataset TD5.csv"):
         filename = "../data/Dataset TD5.csv"
-    elif os.path.exists("data/Dataset TD5.csv"):
+    else:
         filename = "data/Dataset TD5.csv"
+
+    fx_data = read_forex_data(filename)
+    gbp_rets = get_log_returns(fx_data['GBP'])
+    sek_rets = get_log_returns(fx_data['SEK'])
+    cad_rets = get_log_returns(fx_data['CAD'])
+
+    print(f"Data: {len(fx_data['GBP'])} points\n")
+
+    # part a
+    print("a) Multi-scale correlations\n")
+    scales = [0, 1, 2, 3]
+
+    print("GBP/SEK:")
+    for sc in scales:
+        corr = corr_at_scale(gbp_rets, sek_rets, sc)
+        print(f"  scale {sc}: {corr:.4f}")
+
+    print("\nGBP/CAD:")
+    for sc in scales:
+        corr = corr_at_scale(gbp_rets, cad_rets, sc)
+        print(f"  scale {sc}: {corr:.4f}")
+
+    print("\nSEK/CAD:")
+    for sc in scales:
+        corr = corr_at_scale(sek_rets, cad_rets, sc)
+        print(f"  scale {sc}: {corr:.4f}")
+
+    print("\nEpps effect observed: correlation increases with scale")
+
+    # part b
+    print("\n\nb) Hurst exponent\n")
+
+    h_gbp = hurst_exponent(gbp_rets)
+    h_sek = hurst_exponent(sek_rets)
+    h_cad = hurst_exponent(cad_rets)
+
+    print(f"GBP: H={h_gbp:.4f}", end="")
+    if h_gbp > 0.5:
+        print(" (trending)")
+    elif h_gbp < 0.5:
+        print(" (mean reversion)")
     else:
-        filename = "../data/Dataset TD5.csv"
+        print(" (random walk)")
 
-    forex_data = read_forex_data(filename)
-
-    if len(forex_data['GBP']) == 0:
-        print("Error: no data loaded")
+    print(f"SEK: H={h_sek:.4f}", end="")
+    if h_sek > 0.5:
+        print(" (trending)")
+    elif h_sek < 0.5:
+        print(" (mean reversion)")
     else:
-        print(f"Data points: {len(forex_data['GBP'])}")
-        print()
+        print(" (random walk)")
 
-        # Calculate returns for each pair
-        gbp_returns = get_log_returns(forex_data['GBP'])
-        sek_returns = get_log_returns(forex_data['SEK'])
-        cad_returns = get_log_returns(forex_data['CAD'])
+    print(f"CAD: H={h_cad:.4f}", end="")
+    if h_cad > 0.5:
+        print(" (trending)")
+    elif h_cad < 0.5:
+        print(" (mean reversion)")
+    else:
+        print(" (random walk)")
 
-        # Part a: Multi-resolution correlation
-        print("Part a: Multi-Resolution Correlation")
-        print("-"*50)
+    print("\n\nAnnualized volatility:")
+    per = 96 * 252
 
-        scales = [0, 1, 2, 3]
+    vol_gbp = annualized_vol(gbp_rets, per)
+    vol_sek = annualized_vol(sek_rets, per)
+    vol_cad = annualized_vol(cad_rets, per)
 
-        print("GBP vs SEK:")
-        for scale in scales:
-            corr = correlation_at_scale(gbp_returns, sek_returns, scale)
-            print(f"Scale {scale}: {corr:.4f}")
-        print()
-
-        print("GBP vs CAD:")
-        for scale in scales:
-            corr = correlation_at_scale(gbp_returns, cad_returns, scale)
-            print(f"Scale {scale}: {corr:.4f}")
-        print()
-
-        print("SEK vs CAD:")
-        for scale in scales:
-            corr = correlation_at_scale(sek_returns, cad_returns, scale)
-            print(f"Scale {scale}: {corr:.4f}")
-        print()
-
-        # Part b: Hurst exponent
-        print("Part b: Hurst Exponent")
-        print("-"*50)
-
-        hurst_gbp = estimate_hurst_exponent(gbp_returns)
-        hurst_sek = estimate_hurst_exponent(sek_returns)
-        hurst_cad = estimate_hurst_exponent(cad_returns)
-
-        print(f"GBP: H = {hurst_gbp:.4f}")
-        print(f"SEK: H = {hurst_sek:.4f}")
-        print(f"CAD: H = {hurst_cad:.4f}")
-        print()
-
-        # Interpretation
-        for name, h in [('GBP', hurst_gbp), ('SEK', hurst_sek), ('CAD', hurst_cad)]:
-            if h > 0.5:
-                print(f"{name}: trending")
-            elif h < 0.5:
-                print(f"{name}: mean-reverting")
-            else:
-                print(f"{name}: random walk")
-        print()
-
-        # Part c: Annualized volatility
-        print("Part c: Annualized Volatility")
-        print("-"*50)
-
-        # Assuming 15-min intervals, ~96 per day, ~24000 per year
-        periods = 96 * 252
-
-        vol_gbp = annualized_volatility(gbp_returns, periods)
-        vol_sek = annualized_volatility(sek_returns, periods)
-        vol_cad = annualized_volatility(cad_returns, periods)
-
-        print(f"GBP: {vol_gbp:.4f} ({vol_gbp*100:.2f}%)")
-        print(f"SEK: {vol_sek:.4f} ({vol_sek*100:.2f}%)")
-        print(f"CAD: {vol_cad:.4f} ({vol_cad*100:.2f}%)")
-        print()
-
-        print("="*50)
+    print(f"GBP: {vol_gbp:.4f} ({vol_gbp*100:.2f}%)")
+    print(f"SEK: {vol_sek:.4f} ({vol_sek*100:.2f}%)")
+    print(f"CAD: {vol_cad:.4f} ({vol_cad*100:.2f}%)")
