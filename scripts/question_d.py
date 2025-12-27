@@ -26,54 +26,32 @@ def calc_returns(transactions):
     return rets
 
 def get_bouchaud_params(transactions):
-    price_chg = []
-    vols = []
+    log_vols = []
+    log_impacts = []
 
     for i in range(1, len(transactions)):
         p0 = transactions[i-1]['price']
         p1 = transactions[i]['price']
-        chg = p1 - p0
+        impact = abs(p1 - p0)
         vol = transactions[i]['volume']
 
-        if vol is not None and vol > 0:
-            price_chg.append(chg)
-            vols.append(vol)
+        if vol is not None and vol > 0 and impact > 0:
+            log_vols.append(math.log(vol))
+            log_impacts.append(math.log(impact))
 
-    n = len(price_chg)
-    sum_lv = 0.0
-    sum_li = 0.0
-    cnt = 0
+    n = len(log_vols)
+    if n == 0:
+        return 0.01, 0.5
 
-    for i in range(n):
-        imp = abs(price_chg[i])
-        v = vols[i]
-        if imp > 0 and v > 0:
-            sum_lv += math.log(v)
-            sum_li += math.log(imp)
-            cnt += 1
+    mean_v = sum(log_vols) / n
+    mean_i = sum(log_impacts) / n
 
-    if cnt > 0:
-        mean_lv = sum_lv / cnt
-        mean_li = sum_li / cnt
+    cov = sum((log_vols[i] - mean_v) * (log_impacts[i] - mean_i) for i in range(n)) / n
+    var_v = sum((lv - mean_v)**2 for lv in log_vols) / n
 
-        num = 0.0
-        denom = 0.0
-        for i in range(n):
-            imp = abs(price_chg[i])
-            v = vols[i]
-            if imp > 0 and v > 0:
-                lv = math.log(v)
-                li = math.log(imp)
-                num += (lv - mean_lv) * (li - mean_li)
-                denom += (lv - mean_lv) ** 2
-
-        if denom > 0:
-            delta = num / denom
-            log_lam = mean_li - delta * mean_lv
-            lam = math.exp(log_lam)
-        else:
-            delta = 0.5
-            lam = 0.01
+    if var_v > 0:
+        delta = cov / var_v
+        lam = math.exp(mean_i - delta * mean_v)
     else:
         delta = 0.5
         lam = 0.01

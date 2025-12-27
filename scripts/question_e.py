@@ -59,35 +59,28 @@ def corr_at_scale(r1, r2, scale):
         data1 = r1
         data2 = r2
     else:
-        n1 = len(r1)
-        n2 = len(r2)
         step = 2 ** scale
-
-        agg1 = []
-        agg2 = []
-        # aggregate returns by blocks
-        for i in range(0, min(n1, n2) - step + 1, step):
-            agg1.append(sum(r1[i:i+step]))
-            agg2.append(sum(r2[i:i+step]))
-
-        data1 = agg1
-        data2 = agg2
-
-    if len(data1) == 0 or len(data2) == 0:
-        return 0.0
+        data1 = []
+        data2 = []
+        for i in range(0, min(len(r1), len(r2)) - step + 1, step):
+            data1.append(sum(r1[i:i+step]))
+            data2.append(sum(r2[i:i+step]))
 
     n = len(data1)
-    m1 = sum(data1) / n
-    m2 = sum(data2) / n
-
-    cov = sum((data1[i] - m1) * (data2[i] - m2) for i in range(n))
-    v1 = sum((x - m1)**2 for x in data1)
-    v2 = sum((x - m2)**2 for x in data2)
-
-    if v1 == 0 or v2 == 0:
+    if n == 0:
         return 0.0
 
-    return cov / math.sqrt(v1 * v2)
+    mean1 = sum(data1) / n
+    mean2 = sum(data2) / n
+
+    cov = sum((data1[i] - mean1) * (data2[i] - mean2) for i in range(n))
+    var1 = sum((x - mean1)**2 for x in data1)
+    var2 = sum((x - mean2)**2 for x in data2)
+
+    if var1 == 0 or var2 == 0:
+        return 0.0
+
+    return cov / math.sqrt(var1 * var2)
 
 def hurst_exponent(returns):
     n = len(returns)
