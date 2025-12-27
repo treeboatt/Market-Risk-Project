@@ -78,6 +78,9 @@ def get_gev_params(extremes):
     var = sum((x - mean_ext)**2 for x in extremes) / (n - 1)
     std_ext = math.sqrt(var)
 
+    # Note : coefficients 0.8 et 0.58 sont des simplifications numeriques
+    # pour eviter le calcul complexe de la fonction Gamma normalement necessaire
+    # dans la methode des moments
     sigma = std_ext * 0.8
     mu = mean_ext - 0.58 * sigma
 
@@ -132,6 +135,5 @@ levels = [0.90, 0.95, 0.99, 0.995]
 
 print("VaR losses:")
 for lv in levels:
-    alpha = 1 - lv
     var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
-    print(f"  {lv*100:.1f}%: {var_loss:.4f} soit {var_loss*100:.2f}%")
+    print(f"  {lv*100:.1f}%: {var_loss:.6f} ({var_loss*100:.4f}%)")

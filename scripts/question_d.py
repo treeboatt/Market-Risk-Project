@@ -10,7 +10,7 @@ def read_transaction_data(filename):
             t = float(parts[0].replace(',', '.'))
             spread = float(parts[1].replace(',', '.'))
             vol = float(parts[2].replace(',', '.')) if parts[2].strip() else None
-            sign = int(parts[3].replace(',', '.'))
+            sign = int(parts[3])
             price = float(parts[4].replace(',', '.'))
             transactions.append({'time': t, 'spread': spread, 'volume': vol, 'sign': sign, 'price': price})
     f.close()

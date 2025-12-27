@@ -1,17 +1,29 @@
 import math
 
 def read_forex_data(filename):
-    data = {'GBP': [], 'SEK': [], 'CAD': []}
+    gbp_prices = []
+    sek_prices = []
+    cad_prices = []
+
     f = open(filename, 'r')
     lines = f.readlines()[2:]
     for line in lines:
         parts = line.strip().split(';')
         if len(parts) >= 11:
-            data['GBP'].append((float(parts[1].replace(',', '.')) + float(parts[2].replace(',', '.'))) / 2.0)
-            data['SEK'].append((float(parts[5].replace(',', '.')) + float(parts[6].replace(',', '.'))) / 2.0)
-            data['CAD'].append((float(parts[9].replace(',', '.')) + float(parts[10].replace(',', '.'))) / 2.0)
+            gbp_high = float(parts[1].replace(',', '.'))
+            gbp_low = float(parts[2].replace(',', '.'))
+            gbp_prices.append((gbp_high + gbp_low) / 2.0)
+
+            sek_high = float(parts[5].replace(',', '.'))
+            sek_low = float(parts[6].replace(',', '.'))
+            sek_prices.append((sek_high + sek_low) / 2.0)
+
+            cad_high = float(parts[9].replace(',', '.'))
+            cad_low = float(parts[10].replace(',', '.'))
+            cad_prices.append((cad_high + cad_low) / 2.0)
     f.close()
-    return data
+
+    return {'GBP': gbp_prices, 'SEK': sek_prices, 'CAD': cad_prices}
 
 def get_log_returns(prices):
     rets = []

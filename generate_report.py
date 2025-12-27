@@ -322,6 +322,8 @@ def var_evt(xi, mu, sigma, alpha):
     return var_val
 \end{lstlisting}
 
+\textbf{Note importante:} Les coefficients 0.8 et 0.58 utilisés pour estimer $\sigma$ et $\mu$ à partir de la variance et moyenne empiriques sont des simplifications numériques pour éviter le calcul complexe de la fonction Gamma, normalement nécessaire dans la méthode des moments pour la distribution GEV. Ces approximations donnent des résultats raisonnables tout en maintenant une implémentation simple en Python pur.
+
 \subsection{Résultats}
 
 \begin{console}
