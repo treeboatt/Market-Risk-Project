@@ -21,7 +21,6 @@ def get_returns(prices):
 def get_max_blocks(data, bs):
     maxima = []
     nb = len(data) // bs
-    # loop over blocks
     for i in range(nb):
         block = data[i*bs:(i+1)*bs]
         if len(block) > 0:
@@ -78,9 +77,6 @@ def get_gev_params(extremes):
     var = sum((x - mean_ext)**2 for x in extremes) / (n - 1)
     std_ext = math.sqrt(var)
 
-    # Note : coefficients 0.8 et 0.58 sont des simplifications numeriques
-    # pour eviter le calcul complexe de la fonction Gamma normalement necessaire
-    # dans la methode des moments
     sigma = std_ext * 0.8
     mu = mean_ext - 0.58 * sigma
 

@@ -65,7 +65,6 @@ def get_tau(transactions):
     mean_r = sum(rets) / n
     var = sum((r - mean_r)**2 for r in rets) / (n - 1)
 
-    # compute autocorrelation
     autocorr = 0.0
     for i in range(n - 1):
         autocorr += (rets[i] - mean_r) * (rets[i+1] - mean_r)

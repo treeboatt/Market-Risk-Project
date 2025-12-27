@@ -41,7 +41,6 @@ def biweight_kernel(u):
 def bandwidth(data):
     n = len(data)
     m = sum(data) / n
-    # variance calculcation
     var = sum((x - m)**2 for x in data) / (n - 1)
     sd = math.sqrt(var)
     h = 1.1 * sd * (n ** -0.2)
@@ -92,7 +91,6 @@ def expected_shortfall(returns, alpha=0.05):
 
 
 print("\nQuestion A Non parametric VaR\n")
-# temp_var = 0
 
 all_prices, all_dates = read_csv("../data/Natixis.csv")
 print(f"Loaded data: {len(all_prices)} prices\n")
