@@ -32,87 +32,85 @@ def get_log_returns(prices):
     return rets
 
 
-def haar_transform(data):
-    n = len(data)
-    target = 1
-    while target < n:
-        target *= 2
+def correlation(x, y):
+    n = len(x)
+    mx = sum(x) / n
+    my = sum(y) / n
 
-    padded = data[:] + [0.0] * (target - n)
-    result = padded[:]
-    detail = []
+    cov = 0.0
+    vx = 0.0
+    vy = 0.0
 
-    while len(result) > 1:
-        temp = []
-        details = []
-        for i in range(0, len(result), 2):
-            if i + 1 < len(result):
-                temp.append((result[i] + result[i+1]) / 2.0)
-                details.append((result[i] - result[i+1]) / 2.0)
-        result = temp
-        detail = details + detail
+    for i in range(n):
+        dx = x[i] - mx
+        dy = y[i] - my
+        cov += dx * dy
+        vx += dx * dx
+        vy += dy * dy
 
-    return result, detail
+    if vx == 0 or vy == 0:
+        return 0.0
+
+    return cov / math.sqrt(vx * vy)
 
 def corr_at_scale(r1, r2, scale):
     if scale == 0:
-        data1 = r1
-        data2 = r2
-    else:
-        step = 2 ** scale
-        data1 = []
-        data2 = []
-        for i in range(0, min(len(r1), len(r2)) - step + 1, step):
-            data1.append(sum(r1[i:i+step]))
-            data2.append(sum(r2[i:i+step]))
+        return correlation(r1, r2)
 
-    n = len(data1)
-    if n == 0:
+    step = 2 ** scale
+    agg1 = []
+    agg2 = []
+
+    for i in range(0, min(len(r1), len(r2)) - step + 1, step):
+        total1 = 0.0
+        total2 = 0.0
+        for j in range(step):
+            total1 += r1[i + j]
+            total2 += r2[i + j]
+        agg1.append(total1)
+        agg2.append(total2)
+
+    if len(agg1) == 0:
         return 0.0
 
-    mean1 = sum(data1) / n
-    mean2 = sum(data2) / n
-
-    cov = sum((data1[i] - mean1) * (data2[i] - mean2) for i in range(n))
-    var1 = sum((x - mean1)**2 for x in data1)
-    var2 = sum((x - mean2)**2 for x in data2)
-
-    if var1 == 0 or var2 == 0:
-        return 0.0
-
-    return cov / math.sqrt(var1 * var2)
+    return correlation(agg1, agg2)
 
 def hurst_exponent(returns):
     n = len(returns)
     mean_r = sum(returns) / n
 
-    cumul = 0.0
-    cumul_dev = []
+    cumul = []
+    s = 0.0
     for r in returns:
-        cumul += (r - mean_r)
-        cumul_dev.append(cumul)
+        s += (r - mean_r)
+        cumul.append(s)
 
-    R = max(cumul_dev) - min(cumul_dev) if cumul_dev else 0.0
-    var = sum((r - mean_r)**2 for r in returns) / n
+    R = max(cumul) - min(cumul)
+
+    var = 0.0
+    for r in returns:
+        var += (r - mean_r) ** 2
+    var = var / n
     S = math.sqrt(var)
 
     if S == 0:
         return 0.5
 
-    rs = R / S
-    if rs > 0 and n > 1:
-        H = math.log(rs) / math.log(n)
-    else:
-        H = 0.5
-
-    return max(0.0, min(1.0, H))
+    H = math.log(R / S) / math.log(n)
+    return H
 
 def annualized_vol(returns, periods=252):
     n = len(returns)
     m = sum(returns) / n
-    var = sum((r - m)**2 for r in returns) / (n - 1)
-    daily = math.sqrt(var)
-    return daily * math.sqrt(periods)
+
+    var = 0.0
+    for r in returns:
+        var += (r - m) ** 2
+    var = var / (n - 1)
+
+    daily_vol = math.sqrt(var)
+    annual_vol = daily_vol * math.sqrt(periods)
+    return annual_vol
 
 
 print("\nQuestion E Haar Wavelets & Hurst\n")
