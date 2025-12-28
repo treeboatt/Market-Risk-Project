@@ -14,7 +14,6 @@ def read_transaction_data(filename):
     f.close()
     return transactions
 
-
 def calc_returns(transactions):
     rets = []
     for i in range(1, len(transactions)):
