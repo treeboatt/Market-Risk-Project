@@ -34,17 +34,15 @@ def get_impact_params(transactions):
         p1 = transactions[i]['price']
         spread = transactions[i]['spread']
         vol = transactions[i]['volume']
+        sign = transactions[i]['sign']
 
-        impact = abs(p1 - p0)
+        impact = abs((p1 - p0) / spread)
 
-        if vol is not None and vol > 0 and impact > 0 and spread > 0:
+        if vol is not None and vol > 0 and impact > 0 and spread > 0 and sign != 0:
             log_vols.append(math.log(vol))
-            log_impacts.append(math.log(impact / spread))
+            log_impacts.append(math.log(impact))
 
     n = len(log_vols)
-    if n == 0:
-        return 0.01, 0.5
-
     mean_X = sum(log_vols) / n
     mean_Y = sum(log_impacts) / n
 
@@ -73,9 +71,9 @@ def get_gamma(transactions):
 
     return gamma
 
-print("\n" + "="*60)
+
+
 print("QUESTION D: Bouchaud Market Impact Model")
-print("="*60)
 
 trans = read_transaction_data("../data/Dataset TD4.csv")
 print(f"\nDataset: {len(trans)} transactions")
@@ -83,9 +81,9 @@ print(f"\nDataset: {len(trans)} transactions")
 V, r = get_impact_params(trans)
 gamma = get_gamma(trans)
 
-print("\n--- Impact Model: dp = V x S x Vol^r ---")
-print(f"  V (scaling factor) = {V:.4f}")
-print(f"  r (volume exponent) = {r:.3f}")
 
-print(f"\n--- Relaxation: G(t) ~ 1/t^gamma ---")
+print(f"  V = {V:.4f}")
+print(f"  r = {r:.3f}")
+
+
 print(f"  gamma = {gamma:.3f}")
