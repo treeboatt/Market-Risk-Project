@@ -22,34 +22,85 @@ def get_returns(data, col1, col2):
 def haar_wavelet(data, j_max):
     approx = list(data)
     details = {}
+
     for j in range(j_max):
         new_approx = []
         detail = []
+
         for k in range(0, len(approx) - 1, 2):
-            new_approx.append((approx[k] + approx[k+1]) / math.sqrt(2))
-            detail.append((approx[k] - approx[k+1]) / math.sqrt(2))
+            a1 = approx[k]
+            a2 = approx[k+1]
+
+            approx_coef = (a1 + a2) / math.sqrt(2)
+            detail_coef = (a1 - a2) / math.sqrt(2)
+
+            new_approx.append(approx_coef)
+            detail.append(detail_coef)
+
         details[j+1] = detail
         approx = new_approx
+
     return details
 
 def correlation(dx, dy):
-    sum_xy = sum_xx = sum_yy = 0.0
-    for k in range(len(dx)):
-        sum_xy += dx[k] * dy[k]
-        sum_xx += dx[k] * dx[k]
-        sum_yy += dy[k] * dy[k]
-    return sum_xy / math.sqrt(sum_xx * sum_yy)
+    n = len(dx)
+
+    mean_x = sum(dx) / n
+    mean_y = sum(dy) / n
+
+    cov = 0.0
+    var_x = 0.0
+    var_y = 0.0
+
+    for k in range(n):
+        dev_x = dx[k] - mean_x
+        dev_y = dy[k] - mean_y
+
+        cov += dev_x * dev_y
+        var_x += dev_x ** 2
+        var_y += dev_y ** 2
+
+    std_x = math.sqrt(var_x)
+    std_y = math.sqrt(var_y)
+
+    rho = cov / (std_x * std_y)
+    return rho
 
 def hurst(returns):
     n = len(returns)
-    M2 = sum(r**2 for r in returns) / n
-    M2_prime = sum((returns[i] + returns[i+1])**2 for i in range(0, n-1, 2)) / ((n-1) // 2)
-    return 0.5 * math.log(M2_prime / M2) / math.log(2)
+
+    sum_r2 = 0.0
+    for r in returns:
+        sum_r2 += r ** 2
+    M2 = sum_r2 / n
+
+    sum_r2_scale2 = 0.0
+    count = 0
+    for i in range(0, n-1, 2):
+        r_aggregated = returns[i] + returns[i+1]
+        sum_r2_scale2 += r_aggregated ** 2
+        count += 1
+    M2_prime = sum_r2_scale2 / count
+
+    ratio = M2_prime / M2
+    H = 0.5 * math.log(ratio) / math.log(2)
+
+    return H
 
 def volatility(returns):
     n = len(returns)
+
     mean = sum(returns) / n
-    return math.sqrt(sum((r - mean)**2 for r in returns) / (n - 1))
+
+    sum_squared_deviations = 0.0
+    for r in returns:
+        deviation = r - mean
+        sum_squared_deviations += deviation ** 2
+
+    variance = sum_squared_deviations / (n - 1)
+    vol = math.sqrt(variance)
+
+    return vol
 
 
 print("QUESTION E\n")
@@ -59,7 +110,7 @@ gbp = get_returns(data, 0, 1)
 sek = get_returns(data, 2, 3)
 cad = get_returns(data, 4, 5)
 
-print("Part a) Multiresolution correlation with Haar wavelets\n")
+print("Part a)\n")
 
 gbp_d = haar_wavelet(gbp, 4)
 sek_d = haar_wavelet(sek, 4)
@@ -72,7 +123,7 @@ for name, d1, d2 in pairs:
         print(f"  j={j} ({2**j} days): rho = {correlation(d1[j], d2[j]):.4f}")
     print()
 
-print("Part b) Hurst exponent and annualized volatility\n")
+print("Part b)\n")
 
 currencies = [("GBPEUR", gbp), ("SEKEUR", sek), ("CADEUR", cad)]
 H = [hurst(r) for _, r in currencies]
