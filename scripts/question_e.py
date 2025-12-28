@@ -105,72 +105,79 @@ def annualized_vol(returns, periods=252):
     return annual_vol
 
 
-print("\nQuestion E Haar Wavelets & Hurst\n")
+print("\n" + "="*60)
+print("QUESTION E: Haar Wavelets & Hurst Exponent")
+print("="*60)
 
 fx_data = read_forex_data("../data/Dataset TD5.csv")
 gbp_rets = get_log_returns(fx_data['GBP'])
 sek_rets = get_log_returns(fx_data['SEK'])
 cad_rets = get_log_returns(fx_data['CAD'])
 
-print(f"Data: {len(fx_data['GBP'])} points\n")
+print(f"\nDataset: {len(fx_data['GBP'])} price points (15-min intervals)")
+print(f"Returns: {len(gbp_rets)} observations per currency")
 
-print("a) Multi-scale correlations\n")
+print("\n--- Part a) Multi-Scale Correlation Analysis ---")
 scales = [0, 1, 2, 3]
 
-print("GBP/SEK:")
+print("\n  GBP/SEK correlation:")
 for sc in scales:
     corr = corr_at_scale(gbp_rets, sek_rets, sc)
-    print(f"  scale {sc}: {corr:.3f}")
+    time_scale = 15 * (2**sc)
+    print(f"    Scale {sc} ({time_scale:3d} min): ρ = {corr:+.4f}")
 
-print("\nGBP/CAD:")
+print("\n  GBP/CAD correlation:")
 for sc in scales:
     corr = corr_at_scale(gbp_rets, cad_rets, sc)
-    print(f"  scale {sc}: {corr:.3f}")
+    time_scale = 15 * (2**sc)
+    print(f"    Scale {sc} ({time_scale:3d} min): ρ = {corr:+.4f}")
 
-print("\nSEK/CAD:")
+print("\n  SEK/CAD correlation:")
 for sc in scales:
     corr = corr_at_scale(sek_rets, cad_rets, sc)
-    print(f"  scale {sc}: {corr:.3f}")
+    time_scale = 15 * (2**sc)
+    print(f"    Scale {sc} ({time_scale:3d} min): ρ = {corr:+.4f}")
 
-print("\nEpps effect observed: correlation increases with scale")
+print("\n  → Epps effect: Correlation increases with time scale")
 
-print("\n\nb) Hurst exponent\n")
+print("\n--- Part b) Hurst Exponent (R/S Analysis) ---")
 
 h_gbp = hurst_exponent(gbp_rets)
 h_sek = hurst_exponent(sek_rets)
 h_cad = hurst_exponent(cad_rets)
 
-print(f"GBP: H={h_gbp:.4f}", end="")
+print("\n  Long-term memory:")
+print(f"    GBP: H = {h_gbp:.4f}", end="")
 if h_gbp > 0.5:
-    print(" (trending)")
+    print(" → Trending behavior (persistent)")
 elif h_gbp < 0.5:
-    print(" (mean reversion)")
+    print(" → Mean reversion (anti-persistent)")
 else:
-    print(" (random walk)")
+    print(" → Random walk (H = 0.5)")
 
-print(f"SEK: H={h_sek:.4f}", end="")
+print(f"    SEK: H = {h_sek:.4f}", end="")
 if h_sek > 0.5:
-    print(" (trending)")
+    print(" → Trending behavior (persistent)")
 elif h_sek < 0.5:
-    print(" (mean reversion)")
+    print(" → Mean reversion (anti-persistent)")
 else:
-    print(" (random walk)")
+    print(" → Random walk (H = 0.5)")
 
-print(f"CAD: H={h_cad:.4f}", end="")
+print(f"    CAD: H = {h_cad:.4f}", end="")
 if h_cad > 0.5:
-    print(" (trending)")
+    print(" → Trending behavior (persistent)")
 elif h_cad < 0.5:
-    print(" (mean reversion)")
+    print(" → Mean reversion (anti-persistent)")
 else:
-    print(" (random walk)")
+    print(" → Random walk (H = 0.5)")
 
-print("\n\nAnnualized volatility:")
+print("\n  Annualized volatility (15-min sampling):")
 per = 96 * 252
 
 vol_gbp = annualized_vol(gbp_rets, per)
 vol_sek = annualized_vol(sek_rets, per)
 vol_cad = annualized_vol(cad_rets, per)
 
-print(f"GBP: {vol_gbp:.3f} soit {vol_gbp*100:.1f}%")
-print(f"SEK: {vol_sek:.3f} soit {vol_sek*100:.1f}%")
-print(f"CAD: {vol_cad:.3f} soit {vol_cad*100:.1f}%")
+print(f"    GBP: σ = {vol_gbp:.4f} ({vol_gbp*100:.2f}%)")
+print(f"    SEK: σ = {vol_sek:.4f} ({vol_sek*100:.2f}%)")
+print(f"    CAD: σ = {vol_cad:.4f} ({vol_cad*100:.2f}%)")

@@ -65,46 +65,47 @@ def var_evt(xi, mu, sigma, p):
     var_val = mu - (sigma / xi) * (1 - log_term**(-xi))
     return var_val
 
-print("\nQuestion C Extreme Value Theory\n")
+print("\n" + "="*60)
+print("QUESTION C: Extreme Value Theory")
+print("="*60)
 
 all_prices = read_csv("../data/Natixis.csv")
 rets = get_returns(all_prices)
-print(f"Total returns: {len(rets)}\n")
+print(f"\nDataset: {len(rets)} log-returns")
 
-print("a) GEV parameters with Pickands\n")
+print("\n--- Part a) GEV Parameters (Pickands Estimator) ---")
 bs = 20
+print(f"Block size: {bs} returns per block")
 
-print("Right tail (gains):")
+print("\n  RIGHT TAIL (Gains):")
 max_vals = get_blocks(rets, bs, use_max=True)
 xi_r, mu_r, sig_r = get_gev_params(max_vals)
-print(f"Blocks: {len(max_vals)}")
-print(f"xi={xi_r:.3f}, mu={mu_r:.4f}, sigma={sig_r:.4f}")
-
+print(f"    Blocks extracted: {len(max_vals)}")
+print(f"    ξ = {xi_r:.4f}  |  μ = {mu_r:.4f}  |  σ = {sig_r:.4f}")
 if xi_r < 0:
-    print("Bounded distribution")
+    print(f"    → Weibull (ξ < 0): Bounded distribution")
 elif xi_r > 0:
-    print("Heavy tail")
+    print(f"    → Fréchet (ξ > 0): Heavy tail")
 else:
-    print("Gumbel type")
+    print(f"    → Gumbel (ξ ≈ 0): Exponential tail")
 
-print("\nLeft tail (losses):")
+print("\n  LEFT TAIL (Losses):")
 min_vals = get_blocks(rets, bs, use_max=False)
 losses = [-x for x in min_vals]
 xi_l, mu_l, sig_l = get_gev_params(losses)
-print(f"Blocks: {len(min_vals)}")
-print(f"xi={xi_l:.3f}, mu={-mu_l:.4f}, sigma={sig_l:.4f}")
-
+print(f"    Blocks extracted: {len(min_vals)}")
+print(f"    ξ = {xi_l:.4f}  |  μ = {-mu_l:.4f}  |  σ = {sig_l:.4f}")
 if xi_l < 0:
-    print("Bounded distribution")
+    print(f"    → Weibull (ξ < 0): Bounded distribution")
 elif xi_l > 0:
-    print("Heavy tail")
+    print(f"    → Fréchet (ξ > 0): Heavy tail")
 else:
-    print("Gumbel type")
+    print(f"    → Gumbel (ξ ≈ 0): Exponential tail")
 
-print("\n\nb) VaR with EVT\n")
+print("\n--- Part b) VaR Estimates using EVT ---")
 levels = [0.90, 0.95, 0.99, 0.995]
 
-print("VaR losses:")
+print("\n  Loss quantiles:")
 for lv in levels:
     var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
-    print(f"  {lv*100:.1f}%: {var_loss:.6f} ({var_loss*100:.4f}%)")
+    print(f"    VaR₍{lv:.3f}₎ = {var_loss:.6f}  ({var_loss*100:.4f}%)")
