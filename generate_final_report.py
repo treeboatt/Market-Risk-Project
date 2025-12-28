@@ -517,30 +517,85 @@ def read_forex_data(filename):
 
     return {'GBP': gbp_prices, 'SEK': sek_prices, 'CAD': cad_prices}
 
+def correlation(x, y):
+    n = len(x)
+    mx = sum(x) / n
+    my = sum(y) / n
+
+    cov = 0.0
+    vx = 0.0
+    vy = 0.0
+
+    for i in range(n):
+        dx = x[i] - mx
+        dy = y[i] - my
+        cov += dx * dy
+        vx += dx * dx
+        vy += dy * dy
+
+    if vx == 0 or vy == 0:
+        return 0.0
+
+    return cov / math.sqrt(vx * vy)
+
+def corr_at_scale(r1, r2, scale):
+    if scale == 0:
+        return correlation(r1, r2)
+
+    step = 2 ** scale
+    agg1 = []
+    agg2 = []
+
+    for i in range(0, min(len(r1), len(r2)) - step + 1, step):
+        total1 = 0.0
+        total2 = 0.0
+        for j in range(step):
+            total1 += r1[i + j]
+            total2 += r2[i + j]
+        agg1.append(total1)
+        agg2.append(total2)
+
+    if len(agg1) == 0:
+        return 0.0
+
+    return correlation(agg1, agg2)
+
 def hurst_exponent(returns):
     n = len(returns)
     mean_r = sum(returns) / n
 
-    cumul = 0.0
-    cumul_dev = []
+    cumul = []
+    s = 0.0
     for r in returns:
-        cumul += (r - mean_r)
-        cumul_dev.append(cumul)
+        s += (r - mean_r)
+        cumul.append(s)
 
-    R = max(cumul_dev) - min(cumul_dev)
-    var = sum((r - mean_r)**2 for r in returns) / n
+    R = max(cumul) - min(cumul)
+
+    var = 0.0
+    for r in returns:
+        var += (r - mean_r) ** 2
+    var = var / n
     S = math.sqrt(var)
 
     if S == 0:
         return 0.5
 
-    rs = R / S
-    if rs > 0 and n > 1:
-        H = math.log(rs) / math.log(n)
-    else:
-        H = 0.5
+    H = math.log(R / S) / math.log(n)
+    return H
 
-    return max(0.0, min(1.0, H))
+def annualized_vol(returns, periods=252):
+    n = len(returns)
+    m = sum(returns) / n
+
+    var = 0.0
+    for r in returns:
+        var += (r - m) ** 2
+    var = var / (n - 1)
+
+    daily_vol = math.sqrt(var)
+    annual_vol = daily_vol * math.sqrt(periods)
+    return annual_vol
 \end{lstlisting}
 
 \subsection{Results}
