@@ -8,7 +8,7 @@ def read_csv(filename):
         parts = line.strip().split(';')
         if len(parts) >= 2:
             dates.append(parts[0])
-            prices.append(float(parts[1].replace(',', '.')))
+            prices.append(float(parts[1]))
     f.close()
     return prices, dates
 
@@ -23,19 +23,14 @@ def filter_by_year(prices, dates, start_year, end_year):
     filtered = []
     for i in range(len(prices)):
         date_str = dates[i]
-        if '/' in date_str:
-            year = int(date_str.split('/')[2])
-        elif '-' in date_str:
-            year = int(date_str.split('-')[0])
-        else:
-            continue
+        year = int(date_str.split('/')[2])
         if start_year <= year <= end_year:
             filtered.append(prices[i])
     return filtered
 
 def biweight_kernel(u):
     if abs(u) <= 1:
-        return 0.9375 * ((1 - u*u) ** 2)
+        return (15/16) * ((1 - u*u) ** 2)
     return 0.0
 
 def bandwidth(data):

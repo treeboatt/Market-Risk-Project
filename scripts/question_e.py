@@ -6,20 +6,21 @@ def read_forex_data(filename):
     cad_prices = []
 
     f = open(filename, 'r')
-    lines = f.readlines()[2:]
-    for line in lines:
+    next(f)
+    next(f)
+    for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 11:
-            gbp_high = float(parts[1].replace(',', '.'))
-            gbp_low = float(parts[2].replace(',', '.'))
+            gbp_high = float(parts[1])
+            gbp_low = float(parts[2])
             gbp_prices.append((gbp_high + gbp_low) / 2.0)
 
-            sek_high = float(parts[5].replace(',', '.'))
-            sek_low = float(parts[6].replace(',', '.'))
+            sek_high = float(parts[5])
+            sek_low = float(parts[6])
             sek_prices.append((sek_high + sek_low) / 2.0)
 
-            cad_high = float(parts[9].replace(',', '.'))
-            cad_low = float(parts[10].replace(',', '.'))
+            cad_high = float(parts[9])
+            cad_low = float(parts[10])
             cad_prices.append((cad_high + cad_low) / 2.0)
     f.close()
 

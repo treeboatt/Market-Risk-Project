@@ -3,15 +3,15 @@ import math
 def read_transaction_data(filename):
     transactions = []
     f = open(filename, 'r')
-    lines = f.readlines()[1:]
-    for line in lines:
+    next(f)
+    for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 5:
-            t = float(parts[0].replace(',', '.'))
-            spread = float(parts[1].replace(',', '.'))
-            vol = float(parts[2].replace(',', '.')) if parts[2].strip() else None
+            t = float(parts[0])
+            spread = float(parts[1])
+            vol = float(parts[2]) if parts[2].strip() else None
             sign = int(parts[3])
-            price = float(parts[4].replace(',', '.'))
+            price = float(parts[4])
             transactions.append({'time': t, 'spread': spread, 'volume': vol, 'sign': sign, 'price': price})
     f.close()
     return transactions
