@@ -60,12 +60,9 @@ def get_gev_params(extremes):
 
     return xi, mu, sigma
 
-def var_evt(xi, mu, sigma, alpha):
-    if abs(xi) > 0.01:
-        log_term = -math.log(1 - alpha)
-        var_val = mu - (sigma / xi) * (1 - log_term**(-xi))
-    else:
-        var_val = mu - sigma * math.log(-math.log(1 - alpha))
+def var_evt(xi, mu, sigma, p):
+    log_term = -math.log(1 - p)
+    var_val = mu - (sigma / xi) * (1 - log_term**(-xi))
     return var_val
 
 print("\nQuestion C Extreme Value Theory\n")
