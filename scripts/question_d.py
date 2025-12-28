@@ -56,7 +56,7 @@ def get_impact_params(transactions):
 
     return V, r
 
-def get_relaxation_params(transactions):
+def get_gamma(transactions):
     rets = calc_returns(transactions)
     n = len(rets)
 
@@ -66,21 +66,12 @@ def get_relaxation_params(transactions):
     rho_1 = sum((rets[i] - mean_r) * (rets[i+1] - mean_r) for i in range(n - 1)) / ((n - 1) * var)
     rho_2 = sum((rets[i] - mean_r) * (rets[i+2] - mean_r) for i in range(n - 2)) / ((n - 2) * var)
 
-    dt = sum(transactions[i]['time'] - transactions[i-1]['time'] for i in range(1, len(transactions))) / (len(transactions) - 1)
-
-    if 0 < rho_1 < 1:
-        tau = -dt / math.log(rho_1)
-    else:
-        tau = dt
-
     if rho_1 > 0 and rho_2 > 0:
         gamma = math.log(rho_1 / rho_2) / math.log(2)
     else:
         gamma = 1.0
 
-    sigma = math.sqrt(var)
-
-    return tau, rho_1, sigma, gamma
+    return gamma
 
 print("\n" + "="*60)
 print("QUESTION D: Bouchaud Market Impact Model")
@@ -90,24 +81,11 @@ trans = read_transaction_data("../data/Dataset TD4.csv")
 print(f"\nDataset: {len(trans)} transactions")
 
 V, r = get_impact_params(trans)
-tau, rho, sigma, gamma = get_relaxation_params(trans)
+gamma = get_gamma(trans)
 
 print("\n--- Impact Model: dp = V x S x Vol^r ---")
 print(f"  V (scaling factor) = {V:.4f}")
-print(f"  r (volume exponent) = {r:.3f}", end="")
-if r > 0.5:
-    print(" (effet volume fort)")
-else:
-    print(" (effet volume faible)")
+print(f"  r (volume exponent) = {r:.3f}")
 
 print(f"\n--- Relaxation: G(t) ~ 1/t^gamma ---")
-print(f"  tau = {tau:.4f} jours")
 print(f"  gamma = {gamma:.3f}")
-print(f"  rho(1) = {rho:.3f}")
-print(f"  sigma = {sigma:.4f} soit {sigma*100:.2f}%")
-
-print("\n--- Validation ---")
-if 0.3 < r < 0.7 and tau > 0:
-    print("  Parametres dans les valeurs attendues")
-else:
-    print("  Parametres a verifier")
