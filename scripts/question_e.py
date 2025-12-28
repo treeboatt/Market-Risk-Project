@@ -49,9 +49,6 @@ def correlation(x, y):
         vx += dx * dx
         vy += dy * dy
 
-    if vx == 0 or vy == 0:
-        return 0.0
-
     return cov / math.sqrt(vx * vy)
 
 def corr_at_scale(r1, r2, scale):
@@ -70,9 +67,6 @@ def corr_at_scale(r1, r2, scale):
             total2 += r2[i + j]
         agg1.append(total1)
         agg2.append(total2)
-
-    if len(agg1) == 0:
-        return 0.0
 
     return correlation(agg1, agg2)
 
@@ -93,9 +87,6 @@ def hurst_exponent(returns):
         var += (r - mean_r) ** 2
     var = var / n
     S = math.sqrt(var)
-
-    if S == 0:
-        return 0.5
 
     H = math.log(R / S) / math.log(n)
     return H

@@ -49,12 +49,8 @@ def get_bouchaud_params(transactions):
     cov = sum((log_vols[i] - mean_v) * (log_impacts[i] - mean_i) for i in range(n)) / n
     var_v = sum((lv - mean_v)**2 for lv in log_vols) / n
 
-    if var_v > 0:
-        delta = cov / var_v
-        lam = math.exp(mean_i - delta * mean_v)
-    else:
-        delta = 0.5
-        lam = 0.01
+    delta = cov / var_v
+    lam = math.exp(mean_i - delta * mean_v)
 
     return lam, delta
 

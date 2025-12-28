@@ -74,10 +74,7 @@ def expected_shortfall(returns, alpha=0.05):
         if r < var_val:
             tail_losses.append(r)
 
-    if len(tail_losses) > 0:
-        es = sum(tail_losses) / len(tail_losses)
-    else:
-        es = var_val
+    es = sum(tail_losses) / len(tail_losses)
     return es
 
 
