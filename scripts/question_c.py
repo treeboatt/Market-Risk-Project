@@ -2,7 +2,7 @@ import math
 
 def read_csv(filename):
     prices = []
-    f = open(filename, 'r', encoding='utf-8')
+    f = open(filename, 'r', encoding='cp1252')
     for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 2:
@@ -81,26 +81,26 @@ print("\n  RIGHT TAIL (Gains):")
 max_vals = get_blocks(rets, bs, use_max=True)
 xi_r, mu_r, sig_r = get_gev_params(max_vals)
 print(f"    Blocks extracted: {len(max_vals)}")
-print(f"    ξ = {xi_r:.4f}  |  μ = {mu_r:.4f}  |  σ = {sig_r:.4f}")
+print(f"    xi = {xi_r:.4f}  |  mu = {mu_r:.4f}  |  sigma = {sig_r:.4f}")
 if xi_r < 0:
-    print(f"    → Weibull (ξ < 0): Bounded distribution")
+    print(f"    Weibull (xi < 0): Bounded distribution")
 elif xi_r > 0:
-    print(f"    → Fréchet (ξ > 0): Heavy tail")
+    print(f"    Frechet (xi > 0): Heavy tail")
 else:
-    print(f"    → Gumbel (ξ ≈ 0): Exponential tail")
+    print(f"    Gumbel (xi = 0): Exponential tail")
 
 print("\n  LEFT TAIL (Losses):")
 min_vals = get_blocks(rets, bs, use_max=False)
 losses = [-x for x in min_vals]
 xi_l, mu_l, sig_l = get_gev_params(losses)
 print(f"    Blocks extracted: {len(min_vals)}")
-print(f"    ξ = {xi_l:.4f}  |  μ = {-mu_l:.4f}  |  σ = {sig_l:.4f}")
+print(f"    xi = {xi_l:.4f}  |  mu = {-mu_l:.4f}  |  sigma = {sig_l:.4f}")
 if xi_l < 0:
-    print(f"    → Weibull (ξ < 0): Bounded distribution")
+    print(f"    Weibull (xi < 0): Bounded distribution")
 elif xi_l > 0:
-    print(f"    → Fréchet (ξ > 0): Heavy tail")
+    print(f"    Frechet (xi > 0): Heavy tail")
 else:
-    print(f"    → Gumbel (ξ ≈ 0): Exponential tail")
+    print(f"    Gumbel (xi = 0): Exponential tail")
 
 print("\n--- Part b) VaR Estimates using EVT ---")
 levels = [0.90, 0.95, 0.99, 0.995]
@@ -108,4 +108,4 @@ levels = [0.90, 0.95, 0.99, 0.995]
 print("\n  Loss quantiles:")
 for lv in levels:
     var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
-    print(f"    VaR₍{lv:.3f}₎ = {var_loss:.6f}  ({var_loss*100:.4f}%)")
+    print(f"    VaR({lv:.3f}) = {var_loss:.6f}  ({var_loss*100:.4f}%)")

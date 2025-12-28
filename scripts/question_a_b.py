@@ -3,7 +3,7 @@ import math
 def read_csv(filename):
     prices = []
     dates = []
-    f = open(filename, 'r', encoding='utf-8')
+    f = open(filename, 'r', encoding='cp1252')
     for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 2:
@@ -92,7 +92,7 @@ train_returns = get_returns(train_prices)
 alpha = 0.05
 var_val = var_kernel(train_returns, alpha)
 print(f"  Returns analyzed: {len(train_returns)}")
-print(f"  Confidence level: {(1-alpha)*100:.0f}% (α = {alpha})")
+print(f"  Confidence level: {(1-alpha)*100:.0f}% (alpha = {alpha})")
 print(f"  VaR estimate: {var_val:.4f} ({var_val*100:.2f}%)")
 
 print("\n--- Part b) Backtesting (Test Period: 2017-2018) ---")
@@ -110,27 +110,25 @@ print(f"  Expected violation rate: {alpha*100:.0f}%")
 
 diff = abs(real_rate - alpha)
 if diff < 0.02:
-    print(f"  ✓ Model validates (difference < 2%)")
+    print(f"  Model validates (difference < 2%)")
 elif real_rate < alpha:
-    print(f"  ✗ Model underestimates risk")
+    print(f"  Model underestimates risk")
 else:
-    print(f"  ✗ Model overestimates risk")
+    print(f"  Model overestimates risk")
 
 
-print("\n" + "="*60)
 print("QUESTION B: Expected Shortfall")
-print("="*60)
 
 es_val = expected_shortfall(train_returns, alpha)
 
 print(f"\nTraining period: 2015-2016 ({len(train_returns)} returns)")
-print(f"Confidence level: {(1-alpha)*100:.0f}% (α = {alpha})")
-print(f"\n  VaR₀.₀₅ = {var_val:.4f} ({var_val*100:.2f}%)")
-print(f"  ES₀.₀₅  = {es_val:.4f} ({es_val*100:.2f}%)")
+print(f"Confidence level: {(1-alpha)*100:.0f}% (alpha = {alpha})")
+print(f"\n  VaR = {var_val:.4f} ({var_val*100:.2f}%)")
+print(f"  ES = {es_val:.4f} ({es_val*100:.2f}%)")
 print(f"\n  Difference: {abs(es_val - var_val):.4f}")
 print(f"  Ratio ES/VaR: {abs(es_val/var_val):.2f}")
 
 if abs(es_val) > abs(var_val):
-    print(f"\n  → Expected Shortfall exceeds VaR (captures tail risk)")
+    print(f"\n  Expected Shortfall exceeds VaR (captures tail risk)")
 else:
-    print(f"\n  → Expected Shortfall close to VaR")
+    print(f"\n  Expected Shortfall close to VaR")
