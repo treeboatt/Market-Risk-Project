@@ -64,13 +64,11 @@ def get_gamma(transactions):
     if rho_1 > 0 and rho_2 > 0:
         gamma = math.log(rho_1 / rho_2) / math.log(2)
     else:
-        gamma = 0.5  # Default value if autocorrelations are non-positive
+        gamma = 0.5  
 
     return gamma
 
-print("="*50)
 print("QUESTION D")
-print("="*50)
 
 trans = read_transaction_data("../data/Dataset TD4.csv")
 
@@ -78,6 +76,7 @@ V, r = get_impact_params(trans)
 gamma = get_gamma(trans)
 
 print(f"\nBouchaud Model Parameters:")
-print(f"  V     = {V:.4f}")
-print(f"  r     = {r:.3f}")
-print(f"  gamma = {gamma:.3f}")
+print(f"V = {V:.4f}")
+print(f"r = {r:.3f}")
+print(f"gamma = {gamma:.3f}")
+print()

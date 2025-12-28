@@ -1,153 +1,175 @@
 import math
 
-def read_forex_data(filename):
-    gbp_prices = []
-    sek_prices = []
-    cad_prices = []
-
-    f = open(filename, 'r', encoding='utf-8', errors='ignore')
-    next(f)
-    next(f)
-    for line in f:
-        parts = line.strip().split(';')
-        if len(parts) >= 11:
-            gbp_high = float(parts[1])
-            gbp_low = float(parts[2])
-            gbp_prices.append((gbp_high + gbp_low) / 2.0)
-
-            sek_high = float(parts[5])
-            sek_low = float(parts[6])
-            sek_prices.append((sek_high + sek_low) / 2.0)
-
-            cad_high = float(parts[9])
-            cad_low = float(parts[10])
-            cad_prices.append((cad_high + cad_low) / 2.0)
+def read_fx_data(filename):
+    f = open(filename, 'r')
+    lines = f.readlines()
     f.close()
 
-    return {'GBP': gbp_prices, 'SEK': sek_prices, 'CAD': cad_prices}
+    gbp_high = []
+    gbp_low = []
+    sek_high = []
+    sek_low = []
+    cad_high = []
+    cad_low = []
 
-def get_log_returns(prices):
-    rets = []
+    for i in range(2, len(lines)):
+        parts = lines[i].strip().split(';')
+        if len(parts) >= 11:
+            gbp_high.append(float(parts[1]))
+            gbp_low.append(float(parts[2]))
+            sek_high.append(float(parts[5]))
+            sek_low.append(float(parts[6]))
+            cad_high.append(float(parts[9]))
+            cad_low.append(float(parts[10]))
+
+    return gbp_high, gbp_low, sek_high, sek_low, cad_high, cad_low
+
+def get_average_price(high, low):
+    avg = []
+    for i in range(len(high)):
+        avg.append((high[i] + low[i]) / 2.0)
+    return avg
+
+def get_returns(prices):
+    returns = []
     for i in range(1, len(prices)):
-        rets.append(math.log(prices[i] / prices[i-1]))
-    return rets
+        r = math.log(prices[i] / prices[i-1])
+        returns.append(r)
+    return returns
 
+def haar_wavelet(data, j_max):
+    approximation = list(data)
+    details = {}
 
-def correlation(x, y):
-    n = len(x)
-    mx = sum(x) / n
-    my = sum(y) / n
+    for j in range(j_max):
+        new_approx = []
+        detail = []
 
-    cov = 0.0
-    vx = 0.0
-    vy = 0.0
+        for k in range(0, len(approximation) - 1, 2):
+            a_k = (approximation[k] + approximation[k+1]) / math.sqrt(2)
+            d_k = (approximation[k] - approximation[k+1]) / math.sqrt(2)
+            new_approx.append(a_k)
+            detail.append(d_k)
 
-    for i in range(n):
-        dx = x[i] - mx
-        dy = y[i] - my
-        cov += dx * dy
-        vx += dx * dx
-        vy += dy * dy
+        details[j+1] = detail
+        approximation = new_approx
 
-    return cov / math.sqrt(vx * vy)
+    return details
 
-def corr_at_scale(r1, r2, scale):
-    if scale == 0:
-        return correlation(r1, r2)
+def multiresolution_correlation(details_x, details_y, j):
+    dx = details_x[j]
+    dy = details_y[j]
 
-    step = 2 ** scale
-    agg1 = []
-    agg2 = []
+    sum_xy = 0.0
+    sum_xx = 0.0
+    sum_yy = 0.0
 
-    for i in range(0, min(len(r1), len(r2)) - step + 1, step):
-        total1 = 0.0
-        total2 = 0.0
-        for j in range(step):
-            total1 += r1[i + j]
-            total2 += r2[i + j]
-        agg1.append(total1)
-        agg2.append(total2)
+    for k in range(len(dx)):
+        sum_xy += dx[k] * dy[k]
+        sum_xx += dx[k] * dx[k]
+        sum_yy += dy[k] * dy[k]
 
-    return correlation(agg1, agg2)
+    rho = sum_xy / math.sqrt(sum_xx * sum_yy)
+    return rho
 
 def hurst_exponent(returns):
     n = len(returns)
-    mean_r = sum(returns) / n
 
-    cumul = []
-    s = 0.0
-    for r in returns:
-        s += (r - mean_r)
-        cumul.append(s)
+    sum_r2 = 0.0
+    for i in range(n):
+        sum_r2 += returns[i] ** 2
+    M2 = sum_r2 / n
 
-    R = max(cumul) - min(cumul)
+    sum_r2_prime = 0.0
+    count = 0
+    for i in range(0, n-1, 2):
+        diff = returns[i] + returns[i+1]
+        sum_r2_prime += diff ** 2
+        count += 1
+    M2_prime = sum_r2_prime / count
 
-    var = 0.0
-    for r in returns:
-        var += (r - mean_r) ** 2
-    var = var / n
-    S = math.sqrt(var)
-
-    H = math.log(R / S) / math.log(n)
+    H = 0.5 * math.log(M2_prime / M2) / math.log(2)
     return H
 
-def annualized_vol(returns, periods=252):
-    n = len(returns)
-    m = sum(returns) / n
-
-    var = 0.0
-    for r in returns:
-        var += (r - m) ** 2
-    var = var / (n - 1)
-
-    daily_vol = math.sqrt(var)
-    annual_vol = daily_vol * math.sqrt(periods)
-    return annual_vol
 
 
-print("="*50)
 print("QUESTION E")
-print("="*50)
+print()
 
-fx_data = read_forex_data("../data/Dataset TD5.csv")
-gbp_rets = get_log_returns(fx_data['GBP'])
-sek_rets = get_log_returns(fx_data['SEK'])
-cad_rets = get_log_returns(fx_data['CAD'])
+gbp_h, gbp_l, sek_h, sek_l, cad_h, cad_l = read_fx_data("../data/Dataset TD5.csv")
 
-scales = [0, 1, 2, 3]
-print("\nPart a) Multiresolution correlations:")
+gbp_avg = get_average_price(gbp_h, gbp_l)
+sek_avg = get_average_price(sek_h, sek_l)
+cad_avg = get_average_price(cad_h, cad_l)
 
-print("GBP/SEK:")
-for sc in scales:
-    corr = corr_at_scale(gbp_rets, sek_rets, sc)
-    print(f"Scale {sc}: {corr:+.4f}")
+gbp_ret = get_returns(gbp_avg)
+sek_ret = get_returns(sek_avg)
+cad_ret = get_returns(cad_avg)
 
-print("GBP/CAD:")
-for sc in scales:
-    corr = corr_at_scale(gbp_rets, cad_rets, sc)
-    print(f"Scale {sc}: {corr:+.4f}")
+print("Part a) Multiresolution correlation with Haar wavelets")
+print()
 
-print("SEK/CAD:")
-for sc in scales:
-    corr = corr_at_scale(sek_rets, cad_rets, sc)
-    print(f"Scale {sc}: {corr:+.4f}")
+j_max = 4
 
-h_gbp = hurst_exponent(gbp_rets)
-h_sek = hurst_exponent(sek_rets)
-h_cad = hurst_exponent(cad_rets)
+gbp_details = haar_wavelet(gbp_ret, j_max)
+sek_details = haar_wavelet(sek_ret, j_max)
+cad_details = haar_wavelet(cad_ret, j_max)
 
-print("\nPart b) Hurst exponents:")
-print(f"GBP: H = {h_gbp:.4f}")
-print(f"SEK: H = {h_sek:.4f}")
-print(f"CAD: H = {h_cad:.4f}")
+print("GBPEUR vs SEKEUR:")
+for j in range(1, j_max+1):
+    rho = multiresolution_correlation(gbp_details, sek_details, j)
+    print(f"  j={j} ({2**j} days): rho = {rho:.4f}")
+print()
 
-per = 96 * 252
-vol_gbp = annualized_vol(gbp_rets, per)
-vol_sek = annualized_vol(sek_rets, per)
-vol_cad = annualized_vol(cad_rets, per)
+print("GBPEUR vs CADEUR:")
+for j in range(1, j_max+1):
+    rho = multiresolution_correlation(gbp_details, cad_details, j)
+    print(f"  j={j} ({2**j} days): rho = {rho:.4f}")
+print()
 
-print("\nAnnualized volatilities:")
-print(f"GBP: {vol_gbp:.4f}")
-print(f"SEK: {vol_sek:.4f}")
-print(f"CAD: {vol_cad:.4f}")
+print("SEKEUR vs CADEUR:")
+for j in range(1, j_max+1):
+    rho = multiresolution_correlation(sek_details, cad_details, j)
+    print(f"  j={j} ({2**j} days): rho = {rho:.4f}")
+print()
+
+print("Part b) Hurst exponent and annualized volatility")
+print()
+
+H_gbp = hurst_exponent(gbp_ret)
+H_sek = hurst_exponent(sek_ret)
+H_cad = hurst_exponent(cad_ret)
+
+print(f"Hurst exponents:")
+print(f"  GBPEUR: H = {H_gbp:.4f}")
+print(f"  SEKEUR: H = {H_sek:.4f}")
+print(f"  CADEUR: H = {H_cad:.4f}")
+print()
+
+mean_gbp = sum(gbp_ret) / len(gbp_ret)
+var_gbp = sum((r - mean_gbp)**2 for r in gbp_ret) / (len(gbp_ret) - 1)
+vol_daily_gbp = math.sqrt(var_gbp)
+
+mean_sek = sum(sek_ret) / len(sek_ret)
+var_sek = sum((r - mean_sek)**2 for r in sek_ret) / (len(sek_ret) - 1)
+vol_daily_sek = math.sqrt(var_sek)
+
+mean_cad = sum(cad_ret) / len(cad_ret)
+var_cad = sum((r - mean_cad)**2 for r in cad_ret) / (len(cad_ret) - 1)
+vol_daily_cad = math.sqrt(var_cad)
+
+vol_annual_gbp = vol_daily_gbp * (252 ** H_gbp)
+vol_annual_sek = vol_daily_sek * (252 ** H_sek)
+vol_annual_cad = vol_daily_cad * (252 ** H_cad)
+
+print(f"Daily volatility:")
+print(f"  GBPEUR: {vol_daily_gbp:.6f}")
+print(f"  SEKEUR: {vol_daily_sek:.6f}")
+print(f"  CADEUR: {vol_daily_cad:.6f}")
+print()
+
+print(f"Annualized volatility (using Hurst exponent):")
+print(f"  GBPEUR: {vol_annual_gbp:.6f}")
+print(f"  SEKEUR: {vol_annual_sek:.6f}")
+print(f"  CADEUR: {vol_annual_cad:.6f}")
 print()

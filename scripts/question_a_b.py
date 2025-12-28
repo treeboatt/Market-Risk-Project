@@ -78,9 +78,7 @@ def expected_shortfall(returns, alpha=0.05):
     return es
 
 
-print("="*50)
 print("QUESTION A")
-print("="*50)
 
 all_prices, all_dates = read_csv("../data/Natixis.csv")
 
@@ -102,10 +100,8 @@ print(f"Violations: {viols}/{len(test_returns)} ({real_rate*100:.2f}%)")
 print(f"Expected: {alpha*100:.0f}%")
 print()
 
-
-print("="*50)
 print("QUESTION B")
-print("="*50)
+
 
 es_val = expected_shortfall(train_returns, alpha)
 print(f"\nExpected Shortfall (alpha={alpha}):")

@@ -65,9 +65,8 @@ def var_evt(xi, mu, sigma, p):
     var_val = mu - (sigma / xi) * (1 - log_term**(-xi))
     return var_val
 
-print("="*50)
+
 print("QUESTION C")
-print("="*50)
 
 all_prices = read_csv("../data/Natixis.csv")
 rets = get_returns(all_prices)
