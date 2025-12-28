@@ -28,10 +28,6 @@ else:
     exit()
 
 for q in questions_to_run:
-    print("\n" + "="*50)
-    print(f"Question {q}")
-    print("="*50)
-
     if q in ['A', 'B']:
         filename = "question_a_b.py"
     else:

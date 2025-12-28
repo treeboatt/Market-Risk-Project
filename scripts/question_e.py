@@ -5,7 +5,7 @@ def read_forex_data(filename):
     sek_prices = []
     cad_prices = []
 
-    f = open(filename, 'r')
+    f = open(filename, 'r', encoding='utf-8', errors='ignore')
     next(f)
     next(f)
     for line in f:
