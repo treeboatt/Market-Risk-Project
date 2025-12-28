@@ -47,11 +47,16 @@ def get_gev_params(extremes):
 
     n = len(extremes)
     mean_ext = sum(extremes) / n
-    var = sum((x - mean_ext)**2 for x in extremes) / (n - 1)
-    std_ext = math.sqrt(var)
+    var_ext = sum((x - mean_ext)**2 for x in extremes) / (n - 1)
 
-    sigma = std_ext * 0.8
-    mu = mean_ext - 0.58 * sigma
+    if xi == 0:
+        sigma = math.sqrt(6 * var_ext) / math.pi
+        mu = mean_ext - 0.5772 * sigma
+    else:
+        g1 = math.gamma(1 - xi)
+        g2 = math.gamma(1 - 2*xi)
+        sigma = abs(xi) * math.sqrt(var_ext) / math.sqrt(g2 - g1**2)
+        mu = mean_ext - (g1 - 1) * sigma / xi
 
     return xi, mu, sigma
 
