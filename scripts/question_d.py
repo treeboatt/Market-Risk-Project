@@ -25,78 +25,82 @@ def calc_returns(transactions):
         rets.append((p1 - p0) / p0)
     return rets
 
-def get_bouchaud_params(transactions):
+def get_impact_params(transactions):
     log_vols = []
     log_impacts = []
 
     for i in range(1, len(transactions)):
         p0 = transactions[i-1]['price']
         p1 = transactions[i]['price']
-        impact = abs(p1 - p0)
+        spread = transactions[i]['spread']
         vol = transactions[i]['volume']
 
-        if vol is not None and vol > 0 and impact > 0:
+        impact = abs(p1 - p0)
+
+        if vol is not None and vol > 0 and impact > 0 and spread > 0:
             log_vols.append(math.log(vol))
-            log_impacts.append(math.log(impact))
+            log_impacts.append(math.log(impact / spread))
 
     n = len(log_vols)
     if n == 0:
         return 0.01, 0.5
 
-    mean_v = sum(log_vols) / n
-    mean_i = sum(log_impacts) / n
+    mean_X = sum(log_vols) / n
+    mean_Y = sum(log_impacts) / n
 
-    cov = sum((log_vols[i] - mean_v) * (log_impacts[i] - mean_i) for i in range(n)) / n
-    var_v = sum((lv - mean_v)**2 for lv in log_vols) / n
+    cov_XY = sum((log_vols[i] - mean_X) * (log_impacts[i] - mean_Y) for i in range(n)) / n
+    var_X = sum((x - mean_X)**2 for x in log_vols) / n
 
-    delta = cov / var_v
-    lam = math.exp(mean_i - delta * mean_v)
+    r = cov_XY / var_X
+    V = math.exp(mean_Y - r * mean_X)
 
-    return lam, delta
+    return V, r
 
-def get_tau_sigma(transactions):
+def get_relaxation_params(transactions):
     rets = calc_returns(transactions)
     n = len(rets)
 
     mean_r = sum(rets) / n
     var = sum((r - mean_r)**2 for r in rets) / (n - 1)
 
-    autocorr = sum((rets[i] - mean_r) * (rets[i+1] - mean_r) for i in range(n - 1)) / ((n - 1) * var)
+    rho_1 = sum((rets[i] - mean_r) * (rets[i+1] - mean_r) for i in range(n - 1)) / ((n - 1) * var)
 
-    avg_dt = sum(transactions[i]['time'] - transactions[i-1]['time'] for i in range(1, len(transactions))) / (len(transactions) - 1)
+    dt = sum(transactions[i]['time'] - transactions[i-1]['time'] for i in range(1, len(transactions))) / (len(transactions) - 1)
 
-    if 0 < autocorr < 1:
-        tau = -avg_dt / math.log(autocorr)
+    if 0 < rho_1 < 1:
+        tau = -dt / math.log(rho_1)
     else:
-        tau = avg_dt
+        tau = dt
 
     sigma = math.sqrt(var)
 
-    return tau, autocorr, sigma
+    return tau, rho_1, sigma
 
-print("\nQuestion D Bouchaud Model\n")
-
+print("\n" + "="*60)
+print("QUESTION D: Bouchaud Market Impact Model")
+print("="*60)
 
 trans = read_transaction_data("../data/Dataset TD4.csv")
-print(f"Transactions: {len(trans)}\n")
+print(f"\nDataset: {len(trans)} transactions")
 
-lam, delta = get_bouchaud_params(trans)
-tau, ac, sig = get_tau_sigma(trans)
+V, r = get_impact_params(trans)
+tau, rho, sigma = get_relaxation_params(trans)
 
-print("Results:")
-print(f"lambda = {lam:.4f}")
-print(f"delta = {delta:.3f}", end="")
-if delta > 0.5:
-    print(" (strong volume effect)")
+print("\n--- Impact Model: Δp = V × S × Vol^r ---")
+print(f"  V (scaling factor) = {V:.4f}")
+print(f"  r (volume exponent) = {r:.3f}", end="")
+if r > 0.5:
+    print(" (effet volume fort)")
 else:
-    print(" (weak volume effect)")
+    print(" (effet volume faible)")
 
-print(f"tau = {tau:.4f} days")
-print(f"sigma = {sig:.4f} soit {sig*100:.2f}%")
-print(f"\nAutocorrelation: {ac:.3f}")
+print(f"\n--- Relaxation: G(t) ~ 1/t^γ ---")
+print(f"  τ (tau) = {tau:.4f} jours")
+print(f"  ρ(1) = {rho:.3f}")
+print(f"  σ (sigma) = {sigma:.4f} soit {sigma*100:.2f}%")
 
-print("\nModel", end=" ")
-if 0.3 < delta < 0.7 and tau > 0:
-    print("ok")
+print("\n--- Validation ---")
+if 0.3 < r < 0.7 and tau > 0:
+    print("  Parametres dans les valeurs attendues")
 else:
-    print("needs adjustments")
+    print("  Parametres a verifier")
