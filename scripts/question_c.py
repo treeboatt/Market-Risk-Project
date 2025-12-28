@@ -77,15 +77,16 @@ print(f"\nPart a) GEV Parameters (block size={bs}):")
 
 max_vals = get_blocks(rets, bs, use_max=True)
 xi_r, mu_r, sig_r = get_gev_params(max_vals)
-print(f"  Right tail: xi={xi_r:.4f}, mu={mu_r:.4f}, sigma={sig_r:.4f}")
+print(f"Right tail: xi={xi_r:.4f}, mu={mu_r:.4f}, sigma={sig_r:.4f}")
 
 min_vals = get_blocks(rets, bs, use_max=False)
 losses = [-x for x in min_vals]
 xi_l, mu_l, sig_l = get_gev_params(losses)
-print(f"  Left tail:  xi={xi_l:.4f}, mu={-mu_l:.4f}, sigma={sig_l:.4f}")
+print(f"Left tail:  xi={xi_l:.4f}, mu={-mu_l:.4f}, sigma={sig_l:.4f}")
 
 levels = [0.90, 0.95, 0.99, 0.995]
 print(f"\nPart b) VaR estimates:")
 for lv in levels:
     var_loss = var_evt(xi_l, -mu_l, sig_l, lv)
-    print(f"  VaR({lv}) = {var_loss:.4f}")
+    print(f"VaR({lv}) = {var_loss:.4f}")
+print()

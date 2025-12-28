@@ -117,29 +117,29 @@ cad_rets = get_log_returns(fx_data['CAD'])
 scales = [0, 1, 2, 3]
 print("\nPart a) Multiresolution correlations:")
 
-print("  GBP/SEK:")
+print("GBP/SEK:")
 for sc in scales:
     corr = corr_at_scale(gbp_rets, sek_rets, sc)
-    print(f"    Scale {sc}: {corr:+.4f}")
+    print(f"Scale {sc}: {corr:+.4f}")
 
-print("  GBP/CAD:")
+print("GBP/CAD:")
 for sc in scales:
     corr = corr_at_scale(gbp_rets, cad_rets, sc)
-    print(f"    Scale {sc}: {corr:+.4f}")
+    print(f"Scale {sc}: {corr:+.4f}")
 
-print("  SEK/CAD:")
+print("SEK/CAD:")
 for sc in scales:
     corr = corr_at_scale(sek_rets, cad_rets, sc)
-    print(f"    Scale {sc}: {corr:+.4f}")
+    print(f"Scale {sc}: {corr:+.4f}")
 
 h_gbp = hurst_exponent(gbp_rets)
 h_sek = hurst_exponent(sek_rets)
 h_cad = hurst_exponent(cad_rets)
 
 print("\nPart b) Hurst exponents:")
-print(f"  GBP: H = {h_gbp:.4f}")
-print(f"  SEK: H = {h_sek:.4f}")
-print(f"  CAD: H = {h_cad:.4f}")
+print(f"GBP: H = {h_gbp:.4f}")
+print(f"SEK: H = {h_sek:.4f}")
+print(f"CAD: H = {h_cad:.4f}")
 
 per = 96 * 252
 vol_gbp = annualized_vol(gbp_rets, per)
@@ -147,6 +147,7 @@ vol_sek = annualized_vol(sek_rets, per)
 vol_cad = annualized_vol(cad_rets, per)
 
 print("\nAnnualized volatilities:")
-print(f"  GBP: {vol_gbp:.4f}")
-print(f"  SEK: {vol_sek:.4f}")
-print(f"  CAD: {vol_cad:.4f}")
+print(f"GBP: {vol_gbp:.4f}")
+print(f"SEK: {vol_sek:.4f}")
+print(f"CAD: {vol_cad:.4f}")
+print()

@@ -90,7 +90,7 @@ train_returns = get_returns(train_prices)
 alpha = 0.05
 var_val = var_kernel(train_returns, alpha)
 print(f"\nPart a) VaR (2015-2016, alpha={alpha}):")
-print(f"  VaR = {var_val:.4f}")
+print(f"VaR = {var_val:.4f}")
 
 test_prices = filter_by_year(all_prices, all_dates, 2017, 2018)
 test_returns = get_returns(test_prices)
@@ -98,16 +98,18 @@ viols = count_violations(test_returns, var_val)
 real_rate = viols / len(test_returns)
 
 print(f"\nPart b) Backtesting (2017-2018):")
-print(f"  Violations: {viols}/{len(test_returns)} ({real_rate*100:.2f}%)")
-print(f"  Expected: {alpha*100:.0f}%")
+print(f"Violations: {viols}/{len(test_returns)} ({real_rate*100:.2f}%)")
+print(f"Expected: {alpha*100:.0f}%")
+print()
 
 
-print("\n" + "="*50)
+print("="*50)
 print("QUESTION B")
 print("="*50)
 
 es_val = expected_shortfall(train_returns, alpha)
 print(f"\nExpected Shortfall (alpha={alpha}):")
-print(f"  VaR = {var_val:.4f}")
-print(f"  ES  = {es_val:.4f}")
-print(f"  ES/VaR ratio = {abs(es_val/var_val):.2f}")
+print(f"VaR = {var_val:.4f}")
+print(f"ES  = {es_val:.4f}")
+print(f"ES/VaR ratio = {abs(es_val/var_val):.2f}")
+print()
