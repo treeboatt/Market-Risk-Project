@@ -21,40 +21,15 @@ def get_returns(data, col1, col2):
 
 def hurst(returns):
     n = len(returns)
-
-    sum_r2 = 0.0
-    for r in returns:
-        sum_r2 += r ** 2
-    M2 = sum_r2 / n
-
-    sum_r2_scale2 = 0.0
-    count = 0
-    for i in range(0, n-1, 2):
-        r_aggregated = returns[i] + returns[i+1]
-        sum_r2_scale2 += r_aggregated ** 2
-        count += 1
-    M2_prime = sum_r2_scale2 / count
-
-    ratio = M2_prime / M2
-    H = 0.5 * math.log(ratio) / math.log(2)
-
-    return H
+    M2 = sum(r**2 for r in returns) / n
+    M2_prime = sum((returns[i] + returns[i+1])**2 for i in range(0, n-1, 2)) / ((n-1) // 2)
+    return 0.5 * math.log(M2_prime / M2) / math.log(2)
 
 def volatility(returns):
     n = len(returns)
-
     mean = sum(returns) / n
-
-    sum_squared_deviations = 0.0
-    for r in returns:
-        deviation = r - mean
-        sum_squared_deviations += deviation ** 2
-
-    variance = sum_squared_deviations / (n - 1)
-    vol = math.sqrt(variance)
-
-    return vol
-
+    variance = sum((r - mean)**2 for r in returns) / (n - 1)
+    return math.sqrt(variance)
 
 print("QUESTION E\n")
 
