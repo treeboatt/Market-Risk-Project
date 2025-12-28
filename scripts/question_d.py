@@ -58,38 +58,25 @@ def get_bouchaud_params(transactions):
 
     return lam, delta
 
-def get_tau(transactions):
+def get_tau_sigma(transactions):
     rets = calc_returns(transactions)
     n = len(rets)
 
     mean_r = sum(rets) / n
     var = sum((r - mean_r)**2 for r in rets) / (n - 1)
 
-    autocorr = 0.0
-    for i in range(n - 1):
-        autocorr += (rets[i] - mean_r) * (rets[i+1] - mean_r)
-    autocorr = autocorr / ((n - 1) * var)
+    autocorr = sum((rets[i] - mean_r) * (rets[i+1] - mean_r) for i in range(n - 1)) / ((n - 1) * var)
 
-    time_diffs = []
-    for i in range(1, len(transactions)):
-        dt = transactions[i]['time'] - transactions[i-1]['time']
-        time_diffs.append(dt)
+    avg_dt = sum(transactions[i]['time'] - transactions[i-1]['time'] for i in range(1, len(transactions))) / (len(transactions) - 1)
 
-    avg_dt = sum(time_diffs) / len(time_diffs)
-
-    if autocorr > 0 and autocorr < 1:
+    if 0 < autocorr < 1:
         tau = -avg_dt / math.log(autocorr)
     else:
         tau = avg_dt
 
-    return tau, autocorr
+    sigma = math.sqrt(var)
 
-def get_sigma(transactions):
-    rets = calc_returns(transactions)
-    n = len(rets)
-    mean_r = sum(rets) / n
-    var = sum((r - mean_r)**2 for r in rets) / (n - 1)
-    return math.sqrt(var)
+    return tau, autocorr, sigma
 
 print("\nQuestion D Bouchaud Model\n")
 
@@ -98,8 +85,7 @@ trans = read_transaction_data("../data/Dataset TD4.csv")
 print(f"Transactions: {len(trans)}\n")
 
 lam, delta = get_bouchaud_params(trans)
-tau, ac = get_tau(trans)
-sig = get_sigma(trans)
+tau, ac, sig = get_tau_sigma(trans)
 
 print("Results:")
 print(f"lambda = {lam:.4f}")

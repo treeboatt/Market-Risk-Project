@@ -1,15 +1,14 @@
 import math
 
 def read_csv(filename):
-    prices, dates = [], []
+    prices = []
     f = open(filename, 'r')
     for line in f:
         parts = line.strip().split(';')
-        if len(parts)>=2:
-            dates.append(parts[0])
+        if len(parts) >= 2:
             prices.append(float(parts[1]))
     f.close()
-    return prices, dates
+    return prices
 
 def get_returns(prices):
     returns = []
@@ -18,52 +17,26 @@ def get_returns(prices):
         returns.append(r)
     return returns
 
-def get_max_blocks(data, bs):
-    maxima = []
+def get_blocks(data, bs, use_max=True):
+    blocks = []
     nb = len(data) // bs
     for i in range(nb):
         block = data[i*bs:(i+1)*bs]
-        if len(block) > 0:
-            maxima.append(max(block))
-    return maxima
-
-def get_min_blocks(data, bs):
-    minima = []
-    nb = len(data) // bs
-    for i in range(nb):
-        block = data[i*bs:(i+1)*bs]
-        if len(block) > 0:
-            minima.append(min(block))
-    return minima
+        blocks.append(max(block) if use_max else min(block))
+    return blocks
 
 def pickands(extremes):
     n = len(extremes)
     extremes_sorted = sorted(extremes)
 
-    k = n // 4
-    if k < 1:
-        k = 1
+    k = max(1, n // 4)
 
-    idx1 = n - k - 1
-    idx2 = n - 2*k - 1
-    idx3 = n - 4*k - 1
+    x1 = extremes_sorted[n - k - 1]
+    x2 = extremes_sorted[n - 2*k - 1]
+    x3 = extremes_sorted[max(0, n - 4*k - 1)]
 
-    if idx3 < 0:
-        idx3 = 0
-
-    x1 = extremes_sorted[idx1]
-    x2 = extremes_sorted[idx2]
-    x3 = extremes_sorted[idx3]
-
-    num = x1 - x2
-    denom = x2 - x3
-
-    if denom != 0 and num > 0:
-        ratio = num / denom
-        if ratio > 0:
-            xi = math.log(ratio) / math.log(2)
-        else:
-            xi = 0.0
+    if x2 - x3 > 0 and x1 - x2 > 0:
+        xi = math.log((x1 - x2) / (x2 - x3)) / math.log(2)
     else:
         xi = 0.0
 
@@ -92,7 +65,7 @@ def var_evt(xi, mu, sigma, alpha):
 
 print("\nQuestion C Extreme Value Theory\n")
 
-all_prices, all_dates = read_csv("../data/Natixis.csv")
+all_prices = read_csv("../data/Natixis.csv")
 rets = get_returns(all_prices)
 print(f"Total returns: {len(rets)}\n")
 
@@ -100,7 +73,7 @@ print("a) GEV parameters with Pickands\n")
 bs = 20
 
 print("Right tail (gains):")
-max_vals = get_max_blocks(rets, bs)
+max_vals = get_blocks(rets, bs, use_max=True)
 xi_r, mu_r, sig_r = get_gev_params(max_vals)
 print(f"Blocks: {len(max_vals)}")
 print(f"xi={xi_r:.3f}, mu={mu_r:.4f}, sigma={sig_r:.4f}")
@@ -113,7 +86,7 @@ else:
     print("Gumbel type")
 
 print("\nLeft tail (losses):")
-min_vals = get_min_blocks(rets, bs)
+min_vals = get_blocks(rets, bs, use_max=False)
 losses = [-x for x in min_vals]
 xi_l, mu_l, sig_l = get_gev_params(losses)
 print(f"Blocks: {len(min_vals)}")
