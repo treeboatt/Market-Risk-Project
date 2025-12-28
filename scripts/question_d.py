@@ -2,7 +2,7 @@ import math
 
 def read_transaction_data(filename):
     transactions = []
-    f = open(filename, 'r', encoding='utf-8')
+    f = open(filename, 'r')
     next(f)
     for line in f:
         parts = line.strip().split(';')
@@ -68,14 +68,16 @@ def get_gamma(transactions):
 
     return gamma
 
-print("QUESTION D: Bouchaud Market Impact Model")
+print("="*50)
+print("QUESTION D")
+print("="*50)
 
 trans = read_transaction_data("../data/Dataset TD4.csv")
-print(f"\nDataset: {len(trans)} transactions")
 
 V, r = get_impact_params(trans)
 gamma = get_gamma(trans)
 
-print(f"  V = {V:.4f}")
-print(f"  r = {r:.3f}")
+print(f"\nBouchaud Model Parameters:")
+print(f"  V     = {V:.4f}")
+print(f"  r     = {r:.3f}")
 print(f"  gamma = {gamma:.3f}")

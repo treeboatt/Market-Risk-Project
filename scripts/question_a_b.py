@@ -3,7 +3,7 @@ import math
 def read_csv(filename):
     prices = []
     dates = []
-    f = open(filename, 'r', encoding='cp1252')
+    f = open(filename, 'r')
     for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 2:
@@ -78,57 +78,36 @@ def expected_shortfall(returns, alpha=0.05):
     return es
 
 
-print("\n" + "="*60)
-print("QUESTION A: Non-Parametric VaR")
-print("="*60)
+print("="*50)
+print("QUESTION A")
+print("="*50)
 
 all_prices, all_dates = read_csv("../data/Natixis.csv")
-print(f"\nDataset: {len(all_prices)} daily prices loaded")
 
-print("\n--- Part a) VaR Estimation (Training Period: 2015-2016) ---")
 train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
 train_returns = get_returns(train_prices)
 
 alpha = 0.05
 var_val = var_kernel(train_returns, alpha)
-print(f"  Returns analyzed: {len(train_returns)}")
-print(f"  Confidence level: {(1-alpha)*100:.0f}% (alpha = {alpha})")
-print(f"  VaR estimate: {var_val:.4f} ({var_val*100:.2f}%)")
+print(f"\nPart a) VaR (2015-2016, alpha={alpha}):")
+print(f"  VaR = {var_val:.4f}")
 
-print("\n--- Part b) Backtesting (Test Period: 2017-2018) ---")
 test_prices = filter_by_year(all_prices, all_dates, 2017, 2018)
 test_returns = get_returns(test_prices)
-
 viols = count_violations(test_returns, var_val)
-n_test = len(test_returns)
-real_rate = viols / n_test
+real_rate = viols / len(test_returns)
 
-print(f"  Test returns: {n_test}")
-print(f"  Violations: {viols}")
-print(f"  Observed violation rate: {real_rate*100:.2f}%")
-print(f"  Expected violation rate: {alpha*100:.0f}%")
-
-diff = abs(real_rate - alpha)
-if diff < 0.02:
-    print(f"  Model validates (difference < 2%)")
-elif real_rate < alpha:
-    print(f"  Model underestimates risk")
-else:
-    print(f"  Model overestimates risk")
+print(f"\nPart b) Backtesting (2017-2018):")
+print(f"  Violations: {viols}/{len(test_returns)} ({real_rate*100:.2f}%)")
+print(f"  Expected: {alpha*100:.0f}%")
 
 
-print("QUESTION B: Expected Shortfall")
+print("\n" + "="*50)
+print("QUESTION B")
+print("="*50)
 
 es_val = expected_shortfall(train_returns, alpha)
-
-print(f"\nTraining period: 2015-2016 ({len(train_returns)} returns)")
-print(f"Confidence level: {(1-alpha)*100:.0f}% (alpha = {alpha})")
-print(f"\n  VaR = {var_val:.4f} ({var_val*100:.2f}%)")
-print(f"  ES = {es_val:.4f} ({es_val*100:.2f}%)")
-print(f"\n  Difference: {abs(es_val - var_val):.4f}")
-print(f"  Ratio ES/VaR: {abs(es_val/var_val):.2f}")
-
-if abs(es_val) > abs(var_val):
-    print(f"\n  Expected Shortfall exceeds VaR (captures tail risk)")
-else:
-    print(f"\n  Expected Shortfall close to VaR")
+print(f"\nExpected Shortfall (alpha={alpha}):")
+print(f"  VaR = {var_val:.4f}")
+print(f"  ES  = {es_val:.4f}")
+print(f"  ES/VaR ratio = {abs(es_val/var_val):.2f}")
