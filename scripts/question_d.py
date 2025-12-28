@@ -2,7 +2,7 @@ import math
 
 def read_transaction_data(filename):
     transactions = []
-    f = open(filename, 'r')
+    f = open(filename, 'r', encoding='utf-8')
     next(f)
     for line in f:
         parts = line.strip().split(';')

@@ -2,7 +2,7 @@ import math
 
 def read_csv(filename):
     prices = []
-    f = open(filename, 'r')
+    f = open(filename, 'r', encoding='utf-8')
     for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 2:
