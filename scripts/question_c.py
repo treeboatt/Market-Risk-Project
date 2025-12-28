@@ -5,8 +5,7 @@ def read_csv(filename):
     f = open(filename, 'r')
     for line in f:
         parts = line.strip().split(';')
-        if len(parts) >= 2:
-            prices.append(float(parts[1]))
+        prices.append(float(parts[1]))
     f.close()
     return prices
 

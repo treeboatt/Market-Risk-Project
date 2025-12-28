@@ -6,11 +6,10 @@ def read_transaction_data(filename):
     next(f)
     for line in f:
         parts = line.strip().split(';')
-        if len(parts) >= 5:
-            spread = float(parts[1])
-            vol = float(parts[2]) if parts[2].strip() else None
-            price = float(parts[4])
-            transactions.append({'spread': spread, 'volume': vol, 'price': price})
+        spread = float(parts[1])
+        vol = float(parts[2]) if parts[2].strip() else None
+        price = float(parts[4])
+        transactions.append({'spread': spread, 'volume': vol, 'price': price})
     f.close()
     return transactions
 
