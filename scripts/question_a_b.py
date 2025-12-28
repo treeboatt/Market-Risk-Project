@@ -38,7 +38,7 @@ def bandwidth(data):
     m = sum(data) / n
     var = sum((x - m)**2 for x in data) / (n - 1)
     sd = math.sqrt(var)
-    h = 1.1 * sd * (n ** -0.2)
+    h = 1.06 * sd * (n ** (-1.0/5.0))
     return h
 
 def kernel_density(x, data, h):
@@ -51,8 +51,8 @@ def kernel_density(x, data, h):
 
 def var_kernel(returns, alpha=0.05):
     h = bandwidth(returns)
-    lower = min(returns) - 3*h
-    upper = max(returns) + 3*h
+    lower = min(returns)
+    upper = max(returns)
 
     steps = 1000
     dx = (upper - lower) / steps

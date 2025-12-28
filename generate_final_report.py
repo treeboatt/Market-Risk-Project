@@ -107,7 +107,7 @@ def bandwidth(data):
     m = sum(data) / n
     var = sum((x - m)**2 for x in data) / (n - 1)
     sd = math.sqrt(var)
-    h = 1.1 * sd * (n ** -0.2)
+    h = 1.06 * sd * (n ** (-1.0/5.0))
     return h
 
 def kernel_density(x, data, h):
@@ -120,8 +120,8 @@ def kernel_density(x, data, h):
 
 def var_kernel(returns, alpha=0.05):
     h = bandwidth(returns)
-    lower = min(returns) - 3*h
-    upper = max(returns) + 3*h
+    lower = min(returns)
+    upper = max(returns)
 
     steps = 1000
     dx = (upper - lower) / steps
@@ -664,6 +664,12 @@ Working without external libraries forced us to understand each algorithm deeply
 For Natixis specifically, the true tail risk appears to be around 5.3\% at 95\% confidence, substantially higher than the kernel VaR suggests. The asymmetric tail behavior (gains more bounded than losses) is typical for bank stocks facing regulatory constraints on upside but sharp crisis-driven downside.
 
 The main limitation was the historical period (2015-2018) which misses extreme events like COVID-19. Future work could extend the analysis to more recent data and explore conditional volatility models to capture time-varying risk.
+
+\section*{References}
+
+\begin{enumerate}
+\item Wikipedia contributors. (2025). \textit{Kernel density estimation}. Wikipedia, The Free Encyclopedia. \url{https://en.wikipedia.org/wiki/Kernel_density_estimation}
+\end{enumerate}
 
 \end{document}
 """
