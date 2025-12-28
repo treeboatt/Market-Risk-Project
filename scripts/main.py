@@ -38,6 +38,4 @@ for q in questions_to_run:
         filename = f"question_{q.lower()}.py"
     exec(open(filename).read())
 
-print("\n" + "="*50)
-print("Done!")
-print("="*50 + "\n")
+

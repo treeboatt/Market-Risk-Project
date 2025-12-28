@@ -7,12 +7,10 @@ def read_transaction_data(filename):
     for line in f:
         parts = line.strip().split(';')
         if len(parts) >= 5:
-            t = float(parts[0])
             spread = float(parts[1])
             vol = float(parts[2]) if parts[2].strip() else None
-            sign = int(parts[3])
             price = float(parts[4])
-            transactions.append({'time': t, 'spread': spread, 'volume': vol, 'sign': sign, 'price': price})
+            transactions.append({'spread': spread, 'volume': vol, 'price': price})
     f.close()
     return transactions
 
@@ -34,23 +32,22 @@ def get_impact_params(transactions):
         p1 = transactions[i]['price']
         spread = transactions[i]['spread']
         vol = transactions[i]['volume']
-        sign = transactions[i]['sign']
 
         impact = abs((p1 - p0) / spread)
 
-        if vol is not None and vol > 0 and impact > 0 and spread > 0 and sign != 0:
+        if vol is not None:
             log_vols.append(math.log(vol))
             log_impacts.append(math.log(impact))
 
     n = len(log_vols)
-    mean_X = sum(log_vols) / n
-    mean_Y = sum(log_impacts) / n
+    mean_vols = sum(log_vols) / n
+    mean_impacts = sum(log_impacts) / n
 
-    cov_XY = sum((log_vols[i] - mean_X) * (log_impacts[i] - mean_Y) for i in range(n)) / n
-    var_X = sum((x - mean_X)**2 for x in log_vols) / n
+    cov = sum((log_vols[i] - mean_vols) * (log_impacts[i] - mean_impacts) for i in range(n)) / n
+    var_vols = sum((x - mean_vols)**2 for x in log_vols) / n
 
-    r = cov_XY / var_X
-    V = math.exp(mean_Y - r * mean_X)
+    r = cov / var_vols
+    V = math.exp(mean_impacts - r * mean_vols)
 
     return V, r
 
@@ -71,8 +68,6 @@ def get_gamma(transactions):
 
     return gamma
 
-
-
 print("QUESTION D: Bouchaud Market Impact Model")
 
 trans = read_transaction_data("../data/Dataset TD4.csv")
@@ -81,9 +76,6 @@ print(f"\nDataset: {len(trans)} transactions")
 V, r = get_impact_params(trans)
 gamma = get_gamma(trans)
 
-
 print(f"  V = {V:.4f}")
 print(f"  r = {r:.3f}")
-
-
 print(f"  gamma = {gamma:.3f}")
