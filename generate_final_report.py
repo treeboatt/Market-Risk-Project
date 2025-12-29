@@ -14,7 +14,15 @@ def create_market_risk_report():
         'pickands': 'WhatsApp Image 2025-12-29 at 13.58.24.jpeg',
         'blocks': 'WhatsApp Image 2025-12-29 at 13.58.36.jpeg',
         'bouchaud': 'WhatsApp Image 2025-12-29 at 14.20.51.jpeg',
-        'gamma': 'WhatsApp Image 2025-12-29 at 14.21.19.jpeg'
+        'gamma': 'WhatsApp Image 2025-12-29 at 14.21.19.jpeg',
+        'course_var': 'WhatsApp Image 2025-12-29 at 15.12.59.jpeg',
+        'course_kernel': 'WhatsApp Image 2025-12-29 at 15.13.08.jpeg',
+        'course_gev_moments': 'WhatsApp Image 2025-12-29 at 15.13.20.jpeg',
+        'course_gumbel': 'WhatsApp Image 2025-12-29 at 15.14.05.jpeg',
+        'course_bouchaud': 'WhatsApp Image 2025-12-29 at 15.14.19.jpeg',
+        'course_bouchaud2': 'WhatsApp Image 2025-12-29 at 15.14.43.jpeg',
+        'course_hurst': 'WhatsApp Image 2025-12-29 at 15.14.59.jpeg',
+        'course_moments': 'WhatsApp Image 2025-12-29 at 15.15.15.jpeg'
     }
 
     with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -49,7 +57,6 @@ def create_market_risk_report():
         \vspace*{2cm}
 
         {\huge \textbf{Market Risk Measurement:}}\\[0.5cm]
-        {\huge \textbf{Application to Natixis Stock}}\\[1.5cm]
 
         {\Large Quantitative Finance Project}\\[2cm]
 
@@ -57,7 +64,7 @@ def create_market_risk_report():
         {\large ESILV - Financial Engineering}\\[0.3cm]
         {\large Academic Year 2025-2026}\\[2cm]
 
-        {\large December 29, 2025}\\[3cm]
+        {\large December 30, 2025}\\[3cm]
 
         \vfill
 
@@ -72,7 +79,7 @@ def create_market_risk_report():
 
 \section{Introduction}
 
-This project applies various market risk measurement techniques to Natixis stock. We implemented everything from scratch in pure Python - no numpy, no pandas, no scipy. Just Python's standard library and math module.
+This project applies various market risk measurement techniques to different data. We implemented everything from scratch in pure Python - no numpy, no pandas, no scipy. Just Python's standard library and math module.
 
 \subsection{Project Structure}
 
@@ -81,7 +88,6 @@ The project is organized around three main directories:
 \begin{itemize}
 \item \textbf{data/}: Contains our datasets - Natixis daily prices (2015-2018, 1023 observations) and intraday transaction data for Question D, plus high-frequency forex data for Question E
 \item \textbf{scripts/}: All our Python implementations, one file per question
-\item \textbf{generate\_final\_report.py}: Generates this LaTeX report automatically
 \end{itemize}
 
 At the root, we have \texttt{main.py} which provides an interactive console menu. When you run it, you get:
@@ -106,35 +112,43 @@ The architecture is simple: each question script (\texttt{question\_a\_b.py}, \t
 
 \subsection{Methodology}
 
-We used the 2015-2016 period to build our models and tested them on 2017-2018 data. The main objective was to calculate Value-at-Risk through multiple approaches and compare their results. Each method reveals different aspects of the risk profile, from simple non-parametric estimation to advanced extreme value theory.
+The main objective was to calculate Value-at-Risk through multiple approaches and compare their results. We used VaR methods, Expected Shortfall, Extreme Value Theory, the Bouchaud model, and Hurst exponent analysis. Each technique gives a different perspective on the risk.
 
-All calculations are done from first principles - we manually implemented kernel density estimation, the Pickands estimator with gamma functions, log-linear regression for the Bouchaud model, and the Hurst exponent via method of absolute moments. This hands-on approach forced us to really understand the underlying mathematics rather than treating algorithms as black boxes.
+We manually implemented kernel density estimation, the Pickands estimator with gamma functions, log-linear regression for the Bouchaud model, and the Hurst exponent.
 
 \section{Question A: Non-Parametric VaR}
 
 \subsection{Theory}
 
-Value-at-Risk at confidence level $\alpha$ represents the maximum expected loss over a given time period at a specified confidence level. Formally, VaR is defined as the quantile:
+Value-at-Risk at confidence level $\alpha$ represents the maximum expected loss over a given time period at a specified confidence level. VaR is defined as the quantile:
 \begin{equation}
 \text{VaR}_\alpha = \inf\{x : F(x) \geq \alpha\}
 \end{equation}
 
 where $F$ is the cumulative distribution function of returns.
 
-Instead of assuming a parametric distribution (like normality), we estimate the density function non-parametrically using the Parzen-Rosenblatt kernel density estimator with the biweight kernel:
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{course_var.jpeg}
+\caption*{VaR computation from course material}
+\end{figure}
+
+According to the assignment instructions, we estimate the density function non-parametrically using the Parzen-Rosenblatt kernel density estimator with the biweight kernel:
 \begin{equation}
 K(u) = \frac{15}{16}(1-u^2)^2 \mathbb{1}_{|u| \leq 1}
 \end{equation}
 
 The kernel density estimate is given by:
-\begin{equation}
-\hat{f}(x) = \frac{1}{nh} \sum_{i=1}^{n} K\left(\frac{x - X_i}{h}\right)
-\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{course_kernel.jpeg}
+\caption*{Kernel density estimation formulas}
+\end{figure}
 
 where $h$ is the bandwidth parameter, which controls the smoothness of the estimate. We use Silverman's rule of thumb for bandwidth selection:
-\begin{equation}
-h = 1.06 \times \hat{\sigma} \times n^{-1/5}
-\end{equation}
+
+$h = 1.06 \times \hat{\sigma} \times n^{-1/5}$ (see \url{https://en.wikipedia.org/wiki/Kernel_density_estimation#A_rule-of-thumb_bandwidth_estimator})
 
 where $\hat{\sigma}$ is the sample standard deviation and $n$ is the sample size.
 
@@ -142,12 +156,20 @@ To compute VaR, we numerically integrate the kernel density estimate from the le
 
 \subsection{Implementation}
 
-Our implementation uses the biweight kernel with Silverman's bandwidth and numerical integration for VaR calculation. We also filter the data by year to separate training and test periods:
+Our implementation uses the biweight kernel with Silverman's bandwidth and numerical integration for VaR calculation:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{code_kernel.jpeg}
-\caption{Kernel density estimation with biweight kernel, VaR calculation, and year-based data filtering}
+\caption*{Kernel density estimation with biweight kernel and VaR calculation}
+\end{figure}
+
+We filter the data by year to separate training (2015-2016) and test (2017-2018) periods:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{code_filter.jpeg}
+\caption*{Year-based data filtering for train/test split}
 \end{figure}
 
 \subsection{Results}
@@ -209,7 +231,7 @@ Our implementation computes ES empirically by averaging all returns that fall be
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{code_expected_shortfall.jpeg}
-\caption{Expected Shortfall calculation}
+\caption*{Expected Shortfall calculation}
 \end{figure}
 
 \subsection{Results}
@@ -294,12 +316,24 @@ Once $\xi$ is estimated, we compute $\mu$ and $\sigma$ using the theoretical mom
 
 where $g_k = \Gamma(1 - k\xi)$.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{course_gev_moments.jpeg}
+\caption*{GEV moments using gamma function from course}
+\end{figure}
+
 For the Gumbel case ($\xi = 0$), we have:
 \begin{equation}
 \mathbb{E}[X] = \mu + \gamma \sigma, \quad \text{Var}(X) = \frac{\pi^2 \sigma^2}{6}
 \end{equation}
 
 where $\gamma \approx 0.5772$ is the Euler-Mascheroni constant.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{course_gumbel.jpeg}
+\caption*{Gumbel distribution parameters from course}
+\end{figure}
 
 The VaR at confidence level $p$ is obtained by inverting the GEV distribution:
 \begin{equation}
@@ -313,7 +347,7 @@ Our implementation uses the Pickands estimator and the method of moments with th
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{code_pickands.jpeg}
-\caption{Pickands estimator and GEV parameter estimation with gamma functions}
+\caption*{Pickands estimator and GEV parameter estimation with gamma functions}
 \end{figure}
 
 We apply block maxima method with block size 20 to extract extremes from the return series:
@@ -321,7 +355,7 @@ We apply block maxima method with block size 20 to extract extremes from the ret
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{code_blocks.jpeg}
-\caption{Block maxima extraction for EVT}
+\caption*{Block maxima extraction for EVT}
 \end{figure}
 
 \subsection{Results}
@@ -372,6 +406,12 @@ The acceleration from 90\% to 99\% confirms fat tails, but then it decelerates b
 
 The Bouchaud transitory impact model describes how transaction volumes affect prices in financial markets. According to this framework, each transaction creates a temporary price impact that decays over time according to a power law.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{course_bouchaud.jpeg}
+\caption*{Bouchaud transitory impact model from course}
+\end{figure}
+
 The fundamental equation states that price impact $I$ normalized by spread $S$ follows:
 
 \begin{equation}
@@ -415,6 +455,12 @@ V = \exp(\bar{Y} - r \cdot \bar{X})
 
 \textbf{Kyle's square-root law} predicts $r \approx 0.5$ for liquid markets. Values of $r < 0.5$ indicate strong market resilience (liquidity spirals), while $r > 0.5$ suggests illiquidity.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{course_bouchaud2.jpeg}
+\caption*{Backward price definition and impact decay from course}
+\end{figure}
+
 \subsubsection{Temporal Autocorrelation and Gamma}
 
 The model also characterizes how price impacts decay over time through the autocorrelation function. If impacts decay as a power law $G(t) = C/t^\gamma$, then the autocorrelation of returns at lag $\tau$ follows:
@@ -444,7 +490,7 @@ We implement the Bouchaud model by computing impact as price change normalized b
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{code_bouchaud.jpeg}
-\caption{Bouchaud price impact model implementation with log-linear regression}
+\caption*{Parameters of Bouchaud's price impact model}
 \end{figure}
 
 For the temporal decay parameter $\gamma$, we compute autocorrelations at lags 1 and 2:
@@ -452,7 +498,7 @@ For the temporal decay parameter $\gamma$, we compute autocorrelations at lags 1
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{code_gamma.jpeg}
-\caption{Temporal decay parameter estimation from autocorrelations}
+\caption*{Temporal decay parameter estimation from autocorrelations}
 \end{figure}
 
 \subsection{Results}
@@ -504,9 +550,21 @@ For a fractional Brownian motion $B_H(t)$, the variance of increments scales wit
 
 This scaling property allows us to estimate $H$ by comparing variances at different time scales.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{course_hurst.jpeg}
+\caption*{Hurst exponent estimation method from course}
+\end{figure}
+
 \subsubsection{Method of Absolute Moments}
 
 We use the empirical absolute moments method, which is based on the following principle. Define the $k$-th absolute moment at resolution $1/N$:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{course_moments.jpeg}
+\caption*{Empirical absolute moments definition from course}
+\end{figure}
 
 \begin{equation}
 M_k = \frac{1}{NT} \sum_{i=1}^{NT} |X(i/N) - X((i-1)/N)|^k
@@ -630,7 +688,7 @@ Forex pairs all showed $H > 0.5$ (trending behavior). The scaling implication is
 
 \textbf{What We Learned}
 
-Coding everything from scratch in pure Python was honestly painful at times, but it forced us to really understand the math. When you implement the Pickands estimator yourself with gamma functions, you can't just treat it as a black box anymore.
+Coding everything from scratch in pure Python was honestly painful at times. When you implement the Pickands estimator yourself with gamma functions, you can't just treat it as a black box anymore.
 
 One thing that stood out: EVT VaR (-5.31\%) and ES (-5.52\%) matched within 4\% despite being totally different methods. When independent approaches converge like that, you know you're onto something real.
 
@@ -738,7 +796,7 @@ This will execute all questions (A through E) and display results.
     print(f"[OK] Final report generated!")
     print(f"[OK] Location: {zip_filename}")
     print(f"[OK] Size: {file_size_kb:.2f} KB")
-    print(f"[OK] Images included: 7 code screenshots")
+    print(f"[OK] Images: 7 code screenshots + 8 course slides")
     print(f"{'='*60}\n")
 
 if __name__ == "__main__":

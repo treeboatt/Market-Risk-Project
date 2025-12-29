@@ -13,14 +13,6 @@ def read_transaction_data(filename):
     f.close()
     return transactions
 
-def calc_returns(transactions):
-    rets = []
-    for i in range(1, len(transactions)):
-        p0 = transactions[i-1]['price']
-        p1 = transactions[i]['price']
-        rets.append((p1 - p0) / p0)
-    return rets
-
 def get_impact_params(transactions):
     log_vols = []
     log_impacts = []
@@ -48,6 +40,14 @@ def get_impact_params(transactions):
     V = math.exp(mean_impacts - r * mean_vols)
 
     return V, r
+
+def calc_returns(transactions):
+    rets = []
+    for i in range(1, len(transactions)):
+        p0 = transactions[i-1]['price']
+        p1 = transactions[i]['price']
+        rets.append((p1 - p0) / p0)
+    return rets
 
 def get_gamma(transactions):
     rets = calc_returns(transactions)
