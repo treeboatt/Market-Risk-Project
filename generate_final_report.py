@@ -22,7 +22,13 @@ def create_market_risk_report():
         'course_bouchaud': 'WhatsApp Image 2025-12-29 at 15.14.19.jpeg',
         'course_bouchaud2': 'WhatsApp Image 2025-12-29 at 15.14.43.jpeg',
         'course_hurst': 'WhatsApp Image 2025-12-29 at 15.14.59.jpeg',
-        'course_moments': 'WhatsApp Image 2025-12-29 at 15.15.15.jpeg'
+        'course_moments': 'WhatsApp Image 2025-12-29 at 15.15.15.jpeg',
+        'course_pickands': 'PickandsEstimator.jpeg',
+        'output_menu': 'WhatsApp Image 2025-12-29 at 15.21.31.jpeg',
+        'output_a': 'WhatsApp Image 2025-12-29 at 15.38.50.jpeg',
+        'output_b': 'WhatsApp Image 2025-12-29 at 15.39.42.jpeg',
+        'output_c': 'WhatsApp Image 2025-12-29 at 15.40.13.jpeg',
+        'output_d': 'WhatsApp Image 2025-12-29 at 15.40.45.jpeg'
     }
 
     with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -92,21 +98,10 @@ The project is organized around three main directories:
 
 At the root, we have \texttt{main.py} which provides an interactive console menu. When you run it, you get:
 
-\begin{console}
-  MARKET RISK PROJECT 2025-2026
-
-Which question do you want to run?
-
-[A] Non-parametric VaR
-[B] Expected Shortfall
-[C] Extreme Value Theory
-[D] Bouchaud Model
-[E] Haar Wavelets & Hurst
-[T] Run all questions
-[Q] Quit
-
-Choice:
-\end{console}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{output_menu.jpeg}
+\end{figure}
 
 The architecture is simple: each question script (\texttt{question\_a\_b.py}, \texttt{question\_c.py}, etc.) is self-contained and can be run independently. The main script just uses \texttt{exec()} to load and execute them based on user input.
 
@@ -127,13 +122,7 @@ Value-at-Risk at confidence level $\alpha$ represents the maximum expected loss 
 
 where $F$ is the cumulative distribution function of returns.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{course_var.jpeg}
-\caption*{VaR computation from course material}
-\end{figure}
-
-According to the assignment instructions, we estimate the density function non-parametrically using the Parzen-Rosenblatt kernel density estimator with the biweight kernel:
+According to the assignment, we estimate the density function non-parametrically using the Parzen-Rosenblatt kernel density estimator with the biweight kernel:
 \begin{equation}
 K(u) = \frac{15}{16}(1-u^2)^2 \mathbb{1}_{|u| \leq 1}
 \end{equation}
@@ -143,16 +132,26 @@ The kernel density estimate is given by:
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{course_kernel.jpeg}
-\caption*{Kernel density estimation formulas}
 \end{figure}
+\begin{center}
+\textit{Kernel density estimation}
+\end{center}
 
-where $h$ is the bandwidth parameter, which controls the smoothness of the estimate. We use Silverman's rule of thumb for bandwidth selection:
+where $h$ is the bandwidth parameter. We use the optimal choice for $h$ (\url{https://en.wikipedia.org/wiki/Kernel_density_estimation#A_rule-of-thumb_bandwidth_estimator}):
 
-$h = 1.06 \times \hat{\sigma} \times n^{-1/5}$ (see \url{https://en.wikipedia.org/wiki/Kernel_density_estimation#A_rule-of-thumb_bandwidth_estimator})
+$h = 1.06 \times \hat{\sigma} \times n^{-1/5}$
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{course_var.jpeg}
+\end{figure}
+\begin{center}
+\textit{VaR computation}
+\end{center}
 
 where $\hat{\sigma}$ is the sample standard deviation and $n$ is the sample size.
 
-To compute VaR, we numerically integrate the kernel density estimate from the left tail until the cumulative probability reaches $\alpha$.
+To compute VaR, we use the integral.
 
 \subsection{Implementation}
 
@@ -161,115 +160,77 @@ Our implementation uses the biweight kernel with Silverman's bandwidth and numer
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{code_kernel.jpeg}
-\caption*{Kernel density estimation with biweight kernel and VaR calculation}
 \end{figure}
+\begin{center}
+\textit{Biweight kernel and VaR calculation}
+\end{center}
 
 We filter the data by year to separate training (2015-2016) and test (2017-2018) periods:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.75\textwidth]{code_filter.jpeg}
-\caption*{Year-based data filtering for train/test split}
+\includegraphics[width=0.65\textwidth]{code_filter.jpeg}
 \end{figure}
+\begin{center}
+\textit{Data filtering by year}
+\end{center}
 
 \subsection{Results}
 
 We estimate VaR on the training period (2015-2016) and validate it through backtesting on the test period (2017-2018).
 
-\begin{console}
-QUESTION A
-
-Part a) VaR (2015-2016, alpha=0.05):
-VaR = -0.0386
-
-Part b) Backtesting (2017-2018):
-Violations: 8/509 (1.57%)
-Expected: 5%
-\end{console}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{output_a.jpeg}
+\end{figure}
 
 \subsection{Analysis}
 
-The VaR we got is $-3.86\%$ at 95\% confidence. In simple terms, on 95\% of trading days, losses should stay above this level, and only 5\% of the time we'd expect worse losses.
+The VaR we got is $-3.86\%$ at 95\% confidence. Thus, 95\% of trading days, losses should stay above this level, and only 5\% of the time we would expect worst losses.
 
-But when we backtest on 2017-2018 data, we only see 8 violations out of 509 days - that's just 1.57\%. The model is way too conservative, it's overestimating the risk by a lot.
+But when we backtest on 2017-2018 data, we only see 8 violations out of 509 days, which corresponds to 1.57\% of the cases. We can see that the model overestimates the risk, as 2015-2016 is very volatile compared to 2017-2018, we think this is one of the reasons. The model overestimates as it trained on more volatile data.
 
-Why did this happen? We think there are a few reasons:
+Secondly, the biweight kernel smooths everything out, including the tails. We notice that this makes the tails look fatter than they really are.
 
-First, the market was calmer in 2017-2018 than in 2015-2016. We trained on a more volatile period, so the model learned to be cautious. When applied to quieter times, it naturally overestimates.
+Finally, we only had 512 observations in the training set which is not a huge sample.
 
-Second, the biweight kernel smooths everything out, including the tails. We noticed this makes the tails look fatter than they really are - it's a known issue with kernel methods on extreme quantiles.
-
-Third, we only had 512 observations in the training set. That's not a huge sample, especially for estimating the 5\% quantile where data is sparse.
-
-From a risk management perspective though, being too conservative isn't the worst problem to have. Better to overestimate risk than underestimate it. The gap is noticeable (3.43 percentage points) but given we're using a simple method on non-stationary financial data, it's acceptable.
+Conclusion: the model is overestimating the data but we validate the choice of the non parametric VaR as it's better to overestimate than underestimate data in finance.
 
 \section{Question B: Expected Shortfall}
 
 \subsection{Theory}
 
-Expected Shortfall (ES), also known as Conditional Value-at-Risk (CVaR), measures the expected loss given that the loss exceeds the VaR threshold. It is defined as:
+Expected Shortfall (ES) measures the expected loss given that the loss exceeds the VaR threshold. It is defined as:
 \begin{equation}
-\text{ES}_\alpha = \mathbb{E}[X \mid X \leq \text{VaR}_\alpha] = \frac{1}{\alpha}\int_0^\alpha \text{VaR}_u \, du
+\text{ES}_\alpha = \mathbb{E}[X \mid X \leq \text{VaR}_\alpha]
 \end{equation}
 
-ES addresses a fundamental weakness of VaR: VaR only tells us the threshold that losses will exceed with probability $\alpha$, but provides no information about the magnitude of losses beyond that threshold. ES, by contrast, gives us the average of all losses in the tail.
-
-Unlike VaR, ES is a \textit{coherent risk measure} according to the Artzner axioms. It satisfies four key properties:
-\begin{itemize}
-\item \textbf{Monotonicity}: If portfolio A always loses more than portfolio B, then $\text{ES}(A) \geq \text{ES}(B)$
-\item \textbf{Sub-additivity}: $\text{ES}(A + B) \leq \text{ES}(A) + \text{ES}(B)$ (diversification reduces risk)
-\item \textbf{Positive homogeneity}: $\text{ES}(cA) = c \cdot \text{ES}(A)$ for $c > 0$
-\item \textbf{Translation invariance}: $\text{ES}(A + c) = \text{ES}(A) + c$
-\end{itemize}
-
-The sub-additivity property is particularly important for portfolio risk management and capital allocation, which is why Basel III adopted ES as the standard risk measure for market risk.
+VaR calculates the maximum loss whereas ES calculates the average loss beyond the VaR. We also know thanks to the course that ES is a coherent risk compared to VaR.
 
 \subsection{Implementation}
 
-Our implementation computes ES empirically by averaging all returns that fall below the VaR threshold:
+We use the formula of ES to compute it on Python:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.7\textwidth]{code_expected_shortfall.jpeg}
-\caption*{Expected Shortfall calculation}
+\includegraphics[width=0.6\textwidth]{code_expected_shortfall.jpeg}
 \end{figure}
+\begin{center}
+\textit{Expected Shortfall}
+\end{center}
 
 \subsection{Results}
 
 We compute ES on the same training period (2015-2016) used for VaR estimation:
 
-\begin{console}
-QUESTION B
-
-Expected Shortfall (alpha=0.05):
-VaR = -0.0386
-ES  = -0.0552
-ES/VaR ratio = 1.43
-\end{console}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{output_b.jpeg}
+\end{figure}
 
 \subsection{Analysis}
 
-The ES is $-5.52\%$ versus VaR at $-3.86\%$ - that's a 1.66pp gap. This tells us something important about the tail: losses beyond the VaR threshold are pretty severe.
-
-The ES/VaR ratio we got is 1.43, which is higher than the normal distribution benchmark of around 1.25. This means Natixis has fat tails - when things go bad, they go really bad.
-
-Let's put this in concrete terms. If you have a €1 million position in Natixis:
-\begin{itemize}
-\item VaR threshold: €38,600 (5\% worst days exceed this)
-\item Average tail loss (ES): €55,200
-\item Extra risk beyond VaR: €16,600
-\end{itemize}
-
-That €16,600 gap is actually significant. It shows why VaR alone can be misleading - it doesn't tell you how bad things get when they do go south.
-
-This makes sense for a bank stock like Natixis. Financial institutions have this pattern:
-\begin{itemize}
-\item When markets crash, banks get hit hard (2008 crisis, for example)
-\item But upside is capped by regulation and competition
-\item Small macro changes can have big impacts on profitability
-\end{itemize}
-
-Basel III moved from VaR to ES for exactly this reason - ES captures both how often you breach the threshold AND how severe those breaches are. For banks, the severity part really matters.
+The ES is $-5.52\%$ versus VaR at $-3.86\%$ - that's a 1.66pp gap. This tells us that losses beyond the VaR threshold are pretty severe. The ES/VaR ratio we got is 1.43. This means Natixis stock has fat tails.
 
 \section{Question C: Extreme Value Theory}
 
@@ -298,9 +259,11 @@ The shape parameter $\xi$ determines the tail behavior and classifies the distri
 \end{equation}
 
 We estimate $\xi$ using the Pickands estimator, which is robust and distribution-free:
-\begin{equation}
-\hat{\xi} = \frac{1}{\log 2} \log\left(\frac{X_{(n-k)} - X_{(n-2k)}}{X_{(n-2k)} - X_{(n-4k)}}\right)
-\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{course_pickands.jpeg}
+\end{figure}
 
 where $X_{(i)}$ denotes the $i$-th order statistic and $k$ is chosen as $n/4$.
 
@@ -319,8 +282,10 @@ where $g_k = \Gamma(1 - k\xi)$.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{course_gev_moments.jpeg}
-\caption*{GEV moments using gamma function from course}
 \end{figure}
+\begin{center}
+\textit{GEV moments with gamma function}
+\end{center}
 
 For the Gumbel case ($\xi = 0$), we have:
 \begin{equation}
@@ -332,8 +297,10 @@ where $\gamma \approx 0.5772$ is the Euler-Mascheroni constant.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{course_gumbel.jpeg}
-\caption*{Gumbel distribution parameters from course}
 \end{figure}
+\begin{center}
+\textit{Gumbel distribution parameters}
+\end{center}
 
 The VaR at confidence level $p$ is obtained by inverting the GEV distribution:
 \begin{equation}
@@ -347,34 +314,29 @@ Our implementation uses the Pickands estimator and the method of moments with th
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{code_pickands.jpeg}
-\caption*{Pickands estimator and GEV parameter estimation with gamma functions}
 \end{figure}
+\begin{center}
+\textit{Pickands estimator and GEV parameters}
+\end{center}
 
 We apply block maxima method with block size 20 to extract extremes from the return series:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{code_blocks.jpeg}
-\caption*{Block maxima extraction for EVT}
+\includegraphics[width=0.7\textwidth]{code_blocks.jpeg}
 \end{figure}
+\begin{center}
+\textit{Block maxima extraction}
+\end{center}
 
 \subsection{Results}
 
 We estimate GEV parameters for both tails using block size 20:
 
-\begin{console}
-QUESTION C
-
-Part a) GEV Parameters (block size=20):
-Right tail: xi=-0.7020, mu=0.0294, sigma=0.0127
-Left tail:  xi=-0.2930, mu=-0.0257, sigma=0.0211
-
-Part b) VaR estimates:
-VaR(0.9) = -0.0457
-VaR(0.95) = -0.0531
-VaR(0.99) = -0.0664
-VaR(0.995) = -0.0711
-\end{console}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{output_c.jpeg}
+\end{figure}
 
 \subsection{Analysis}
 
@@ -409,8 +371,10 @@ The Bouchaud transitory impact model describes how transaction volumes affect pr
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{course_bouchaud.jpeg}
-\caption*{Bouchaud transitory impact model from course}
 \end{figure}
+\begin{center}
+\textit{Bouchaud transitory impact model}
+\end{center}
 
 The fundamental equation states that price impact $I$ normalized by spread $S$ follows:
 
@@ -458,8 +422,10 @@ V = \exp(\bar{Y} - r \cdot \bar{X})
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{course_bouchaud2.jpeg}
-\caption*{Backward price definition and impact decay from course}
 \end{figure}
+\begin{center}
+\textit{Backward price definition and impact decay}
+\end{center}
 
 \subsubsection{Temporal Autocorrelation and Gamma}
 
@@ -490,29 +456,29 @@ We implement the Bouchaud model by computing impact as price change normalized b
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{code_bouchaud.jpeg}
-\caption*{Parameters of Bouchaud's price impact model}
 \end{figure}
+\begin{center}
+\textit{Bouchaud's price impact model}
+\end{center}
 
 For the temporal decay parameter $\gamma$, we compute autocorrelations at lags 1 and 2:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{code_gamma.jpeg}
-\caption*{Temporal decay parameter estimation from autocorrelations}
+\includegraphics[width=0.75\textwidth]{code_gamma.jpeg}
 \end{figure}
+\begin{center}
+\textit{Temporal decay parameter estimation}
+\end{center}
 
 \subsection{Results}
 
 We apply the model to intraday transaction data for Natixis:
 
-\begin{console}
-QUESTION D
-
-Bouchaud Model Parameters:
-V = 0.0123
-r = 0.487
-gamma = 0.512
-\end{console}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{output_d.jpeg}
+\end{figure}
 
 \subsection{Analysis}
 
@@ -553,18 +519,22 @@ This scaling property allows us to estimate $H$ by comparing variances at differ
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{course_hurst.jpeg}
-\caption*{Hurst exponent estimation method from course}
 \end{figure}
+\begin{center}
+\textit{Hurst exponent estimation}
+\end{center}
 
 \subsubsection{Method of Absolute Moments}
 
-We use the empirical absolute moments method, which is based on the following principle. Define the $k$-th absolute moment at resolution $1/N$:
+We use the empirical absolute moments method. Define the $k$-th absolute moment at resolution $1/N$:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.75\textwidth]{course_moments.jpeg}
-\caption*{Empirical absolute moments definition from course}
 \end{figure}
+\begin{center}
+\textit{Empirical absolute moments}
+\end{center}
 
 \begin{equation}
 M_k = \frac{1}{NT} \sum_{i=1}^{NT} |X(i/N) - X((i-1)/N)|^k
@@ -737,7 +707,10 @@ Overall, the project showed us that you don't need fancy libraries to do serious
             img_path = os.path.join(downloads_path, img_filename)
             if os.path.exists(img_path):
                 # Rename to simpler names
-                simple_name = f'code_{img_key}.jpeg'
+                if img_key.startswith('course_') or img_key.startswith('output_'):
+                    simple_name = f'{img_key}.jpeg'
+                else:
+                    simple_name = f'code_{img_key}.jpeg'
                 zipf.write(img_path, simple_name)
 
         readme = """# Market Risk Measurement: Application to Natixis Stock
@@ -796,7 +769,7 @@ This will execute all questions (A through E) and display results.
     print(f"[OK] Final report generated!")
     print(f"[OK] Location: {zip_filename}")
     print(f"[OK] Size: {file_size_kb:.2f} KB")
-    print(f"[OK] Images: 7 code screenshots + 8 course slides")
+    print(f"[OK] Images: 7 code + 9 course + 5 outputs")
     print(f"{'='*60}\n")
 
 if __name__ == "__main__":
