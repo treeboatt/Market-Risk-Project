@@ -1,9 +1,21 @@
 import zipfile
 import os
+import shutil
 
 def create_market_risk_report():
     downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
     zip_filename = os.path.join(downloads_path, "Market_Risk_Report_Final.zip")
+
+    # Image files from Downloads
+    image_files = {
+        'kernel': 'WhatsApp Image 2025-12-29 at 13.45.14.jpeg',
+        'filter': 'WhatsApp Image 2025-12-29 at 13.49.33.jpeg',
+        'expected_shortfall': 'WhatsApp Image 2025-12-29 at 13.50.05.jpeg',
+        'pickands': 'WhatsApp Image 2025-12-29 at 13.58.24.jpeg',
+        'blocks': 'WhatsApp Image 2025-12-29 at 13.58.36.jpeg',
+        'bouchaud': 'WhatsApp Image 2025-12-29 at 14.20.51.jpeg',
+        'gamma': 'WhatsApp Image 2025-12-29 at 14.21.19.jpeg'
+    }
 
     with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
 
@@ -13,7 +25,6 @@ def create_market_risk_report():
 \usepackage[english]{babel}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{graphicx}
-\usepackage{listings}
 \usepackage{xcolor}
 \usepackage{geometry}
 \usepackage{hyperref}
@@ -21,19 +32,6 @@ def create_market_risk_report():
 \usepackage{fancyvrb}
 
 \geometry{margin=2.5cm}
-
-\lstset{
-    language=Python,
-    basicstyle=\ttfamily\footnotesize,
-    keywordstyle=\color{blue},
-    commentstyle=\color{gray},
-    stringstyle=\color{red},
-    numbers=left,
-    numberstyle=\tiny\color{gray},
-    frame=single,
-    breaklines=true,
-    tabsize=4
-}
 
 \DefineVerbatimEnvironment{console}{Verbatim}{
     frame=single,
@@ -74,9 +72,43 @@ def create_market_risk_report():
 
 \section{Introduction}
 
-This project focuses on measuring market risk for Natixis stock using different statistical methods. We implemented everything from scratch in pure Python without external packages like numpy or pandas. The dataset covers daily Natixis prices from 2015 to 2018 (1023 observations total), plus high-frequency forex data for the final question.
+This project applies various market risk measurement techniques to Natixis stock. We implemented everything from scratch in pure Python - no numpy, no pandas, no scipy. Just Python's standard library and math module.
+
+\subsection{Project Structure}
+
+The project is organized around three main directories:
+
+\begin{itemize}
+\item \textbf{data/}: Contains our datasets - Natixis daily prices (2015-2018, 1023 observations) and intraday transaction data for Question D, plus high-frequency forex data for Question E
+\item \textbf{scripts/}: All our Python implementations, one file per question
+\item \textbf{generate\_final\_report.py}: Generates this LaTeX report automatically
+\end{itemize}
+
+At the root, we have \texttt{main.py} which provides an interactive console menu. When you run it, you get:
+
+\begin{console}
+  MARKET RISK PROJECT 2025-2026
+
+Which question do you want to run?
+
+[A] Non-parametric VaR
+[B] Expected Shortfall
+[C] Extreme Value Theory
+[D] Bouchaud Model
+[E] Haar Wavelets & Hurst
+[T] Run all questions
+[Q] Quit
+
+Choice:
+\end{console}
+
+The architecture is simple: each question script (\texttt{question\_a\_b.py}, \texttt{question\_c.py}, etc.) is self-contained and can be run independently. The main script just uses \texttt{exec()} to load and execute them based on user input.
+
+\subsection{Methodology}
 
 We used the 2015-2016 period to build our models and tested them on 2017-2018 data. The main objective was to calculate Value-at-Risk through multiple approaches and compare their results. Each method reveals different aspects of the risk profile, from simple non-parametric estimation to advanced extreme value theory.
+
+All calculations are done from first principles - we manually implemented kernel density estimation, the Pickands estimator with gamma functions, log-linear regression for the Bouchaud model, and the Hurst exponent via method of absolute moments. This hands-on approach forced us to really understand the underlying mathematics rather than treating algorithms as black boxes.
 
 \section{Question A: Non-Parametric VaR}
 
@@ -110,58 +142,13 @@ To compute VaR, we numerically integrate the kernel density estimate from the le
 
 \subsection{Implementation}
 
-Our implementation follows a modular approach with separate functions for data processing, kernel estimation, and VaR calculation:
+Our implementation uses the biweight kernel with Silverman's bandwidth and numerical integration for VaR calculation. We also filter the data by year to separate training and test periods:
 
-\begin{lstlisting}
-def biweight_kernel(u):
-    if abs(u) <= 1:
-        return (15/16) * ((1 - u*u) ** 2)
-    return 0.0
-
-def bandwidth(data):
-    n = len(data)
-    m = sum(data) / n
-    var = sum((x - m)**2 for x in data) / (n - 1)
-    sd = math.sqrt(var)
-    h = 1.06 * sd * (n ** (-1.0/5.0))
-    return h
-
-def kernel_density(x, data, h):
-    n = len(data)
-    total = 0.0
-    for xi in data:
-        u = (x - xi) / h
-        total += biweight_kernel(u)
-    return total / (n * h)
-
-def var_kernel(returns, alpha=0.05):
-    h = bandwidth(returns)
-    lower = min(returns)
-    upper = max(returns)
-
-    steps = 1000
-    dx = (upper - lower) / steps
-    x = lower
-    cumul = 0.0
-    while cumul < alpha and x < upper:
-        cumul += kernel_density(x, returns, h) * dx
-        x += dx
-
-    return x
-\end{lstlisting}
-
-We filter the data by year to separate training (2015-2016) and test (2017-2018) periods:
-
-\begin{lstlisting}
-def filter_by_year(prices, dates, start_year, end_year):
-    filtered = []
-    for i in range(len(prices)):
-        date_str = dates[i]
-        year = int(date_str.split('/')[2])
-        if start_year <= year <= end_year:
-            filtered.append(prices[i])
-    return filtered
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{code_kernel.jpeg}
+\caption{Kernel density estimation with biweight kernel, VaR calculation, and year-based data filtering}
+\end{figure}
 
 \subsection{Results}
 
@@ -219,19 +206,11 @@ The sub-additivity property is particularly important for portfolio risk managem
 
 Our implementation computes ES empirically by averaging all returns that fall below the VaR threshold:
 
-\begin{lstlisting}
-def expected_shortfall(returns, alpha=0.05):
-    var_val = var_kernel(returns, alpha)
-    tail_losses = []
-    for r in returns:
-        if r < var_val:
-            tail_losses.append(r)
-
-    es = sum(tail_losses) / len(tail_losses)
-    return es
-\end{lstlisting}
-
-This approach is simple and consistent with the kernel-based VaR estimate from Question A.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{code_expected_shortfall.jpeg}
+\caption{Expected Shortfall calculation}
+\end{figure}
 
 \subsection{Results}
 
@@ -331,61 +310,19 @@ The VaR at confidence level $p$ is obtained by inverting the GEV distribution:
 
 Our implementation uses the Pickands estimator and the method of moments with the gamma function:
 
-\begin{lstlisting}
-def pickands(extremes):
-    n = len(extremes)
-    extremes_sorted = sorted(extremes)
-
-    k = max(1, n // 4)
-
-    x1 = extremes_sorted[n - k - 1]
-    x2 = extremes_sorted[n - 2*k - 1]
-    x3 = extremes_sorted[max(0, n - 4*k - 1)]
-
-    if x2 - x3 > 0 and x1 - x2 > 0:
-        xi = math.log((x1 - x2) / (x2 - x3)) / math.log(2)
-    else:
-        xi = 0.0
-
-    return xi
-
-def get_gev_params(extremes):
-    xi = pickands(extremes)
-
-    n = len(extremes)
-    mean_ext = sum(extremes) / n
-    var_ext = sum((x - mean_ext)**2 for x in extremes) / (n - 1)
-
-    if xi == 0:
-        # Gumbel case
-        sigma = math.sqrt(6 * var_ext) / math.pi
-        mu = mean_ext - 0.5772 * sigma
-    else:
-        # Frechet or Weibull case
-        g1 = math.gamma(1 - xi)
-        g2 = math.gamma(1 - 2*xi)
-        sigma = abs(xi) * math.sqrt(var_ext) / math.sqrt(g2 - g1**2)
-        mu = mean_ext - (g1 - 1) * sigma / xi
-
-    return xi, mu, sigma
-
-def var_evt(xi, mu, sigma, p):
-    log_term = -math.log(1 - p)
-    var_val = mu - (sigma / xi) * (1 - log_term**(-xi))
-    return var_val
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{code_pickands.jpeg}
+\caption{Pickands estimator and GEV parameter estimation with gamma functions}
+\end{figure}
 
 We apply block maxima method with block size 20 to extract extremes from the return series:
 
-\begin{lstlisting}
-def get_blocks(data, bs, use_max=True):
-    blocks = []
-    nb = len(data) // bs
-    for i in range(nb):
-        block = data[i*bs:(i+1)*bs]
-        blocks.append(max(block) if use_max else min(block))
-    return blocks
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{code_blocks.jpeg}
+\caption{Block maxima extraction for EVT}
+\end{figure}
 
 \subsection{Results}
 
@@ -495,7 +432,7 @@ We can estimate $\gamma$ by comparing autocorrelations at different lags. For la
 Taking logarithms:
 
 \begin{equation}
-\gamma = \frac{\ln(\rho(t_1)) - \ln(\rho(t_2))}{\ln(t_2) - \ln(t_1)} = \frac{\ln(\rho(1)/\rho(2))}{\ln(2)}
+\gamma = \frac{\ln(\rho(1)/\rho(2))}{\ln(2)}
 \end{equation}
 
 Empirical studies (Bouchaud et al., 2004) find $\gamma \approx 0.5$ for stocks, indicating that price impacts decay relatively slowly, with market memory extending over multiple transactions.
@@ -504,80 +441,19 @@ Empirical studies (Bouchaud et al., 2004) find $\gamma \approx 0.5$ for stocks, 
 
 We implement the Bouchaud model by computing impact as price change normalized by spread, then performing log-linear regression:
 
-\begin{lstlisting}
-def read_transaction_data(filename):
-    transactions = []
-    f = open(filename, 'r')
-    next(f)
-    for line in f:
-        parts = line.strip().split(';')
-        spread = float(parts[1])
-        vol = float(parts[2]) if parts[2].strip() else None
-        price = float(parts[4])
-        transactions.append({'spread': spread, 'volume': vol,
-                           'price': price})
-    f.close()
-    return transactions
-
-def get_impact_params(transactions):
-    log_vols = []
-    log_impacts = []
-
-    for i in range(1, len(transactions)):
-        p0 = transactions[i-1]['price']
-        p1 = transactions[i]['price']
-        spread = transactions[i]['spread']
-        vol = transactions[i]['volume']
-
-        # Impact normalized by spread
-        impact = abs((p1 - p0) / spread)
-
-        if vol is not None:
-            log_vols.append(math.log(vol))
-            log_impacts.append(math.log(impact))
-
-    n = len(log_vols)
-    mean_vols = sum(log_vols) / n
-    mean_impacts = sum(log_impacts) / n
-
-    # Covariance and variance for regression
-    cov = sum((log_vols[i] - mean_vols) *
-              (log_impacts[i] - mean_impacts)
-              for i in range(n)) / n
-    var_vols = sum((x - mean_vols)**2 for x in log_vols) / n
-
-    # Slope r and intercept V
-    r = cov / var_vols
-    V = math.exp(mean_impacts - r * mean_vols)
-
-    return V, r
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{code_bouchaud.jpeg}
+\caption{Bouchaud price impact model implementation with log-linear regression}
+\end{figure}
 
 For the temporal decay parameter $\gamma$, we compute autocorrelations at lags 1 and 2:
 
-\begin{lstlisting}
-def get_gamma(transactions):
-    rets = calc_returns(transactions)
-    n = len(rets)
-
-    mean_r = sum(rets) / n
-    var = sum((r - mean_r)**2 for r in rets) / (n - 1)
-
-    # Autocorrelation at lag 1
-    rho_1 = sum((rets[i] - mean_r) * (rets[i+1] - mean_r)
-                for i in range(n - 1)) / ((n - 1) * var)
-
-    # Autocorrelation at lag 2
-    rho_2 = sum((rets[i] - mean_r) * (rets[i+2] - mean_r)
-                for i in range(n - 2)) / ((n - 2) * var)
-
-    if rho_1 > 0 and rho_2 > 0:
-        gamma = math.log(rho_1 / rho_2) / math.log(2)
-    else:
-        gamma = 0.5
-
-    return gamma
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{code_gamma.jpeg}
+\caption{Temporal decay parameter estimation from autocorrelations}
+\end{figure}
 
 \subsection{Results}
 
@@ -674,63 +550,9 @@ where $T = 252$ trading days. This differs from the standard $\sqrt{T}$ scaling 
 
 \subsection{Implementation}
 
-We implement the Hurst estimator using the method of absolute moments at two resolutions:
-
-\begin{lstlisting}
-def read_fx_data(filename):
-    f = open(filename, 'r')
-    lines = f.readlines()
-    f.close()
-    data = []
-    for i in range(2, len(lines)):
-        parts = lines[i].strip().split(';')
-        gbp_high = float(parts[1])
-        gbp_low = float(parts[2])
-        sek_high = float(parts[5])
-        sek_low = float(parts[6])
-        cad_high = float(parts[9])
-        cad_low = float(parts[10])
-        data.append([gbp_high, gbp_low, sek_high,
-                    sek_low, cad_high, cad_low])
-    return data
-
-def get_returns(data, col1, col2):
-    returns = []
-    for i in range(1, len(data)):
-        # Average of high and low for mid-price
-        avg_prev = (data[i-1][col1] + data[i-1][col2]) / 2.0
-        avg_curr = (data[i][col1] + data[i][col2]) / 2.0
-        returns.append(math.log(avg_curr / avg_prev))
-    return returns
-
-def hurst(returns):
-    n = len(returns)
-
-    # M2: second moment at original resolution
-    M2 = sum(r**2 for r in returns) / n
-
-    # M2_prime: aggregated at half resolution
-    sum_agg = 0.0
-    for i in range(0, n-1, 2):
-        sum_agg += (returns[i] + returns[i+1])**2
-    M2_prime = sum_agg / ((n-1) // 2)
-
-    # Hurst exponent from ratio
-    return 0.5 * math.log(M2_prime / M2) / math.log(2)
-
-def volatility(returns):
-    n = len(returns)
-    mean = sum(returns) / n
-
-    sum_sq_dev = 0.0
-    for r in returns:
-        sum_sq_dev += (r - mean) ** 2
-
-    variance = sum_sq_dev / (n - 1)
-    return math.sqrt(variance)
-\end{lstlisting}
-
 The key insight is in the aggregation: by summing consecutive pairs of returns and computing their squared moments, we effectively double the time scale. The ratio $M'_2 / M_2$ captures how variance scales with time, revealing the Hurst exponent.
+
+Our implementation is straightforward - we calculate moments at two different resolutions and compute the Hurst exponent from their ratio.
 
 \subsection{Results}
 
@@ -852,6 +674,14 @@ Overall, the project showed us that you don't need fancy libraries to do serious
 
         zipf.writestr('main.tex', main_tex)
 
+        # Add images to ZIP
+        for img_key, img_filename in image_files.items():
+            img_path = os.path.join(downloads_path, img_filename)
+            if os.path.exists(img_path):
+                # Rename to simpler names
+                simple_name = f'code_{img_key}.jpeg'
+                zipf.write(img_path, simple_name)
+
         readme = """# Market Risk Measurement: Application to Natixis Stock
 
 ## Authors
@@ -864,14 +694,13 @@ This project implements various market risk measurement techniques applied to Na
 
 ## Contents
 - `main.tex`: Complete LaTeX report with theory, implementation, results and analysis
-- `esilv_logo.png`: School logo (you may need to add this file)
+- `code_*.jpeg`: Screenshots of actual implementation code
 
 ## Report Compilation
 To compile the LaTeX report:
 
 1. Extract the ZIP file
-2. (Optional) Add `esilv_logo.png` to the directory
-3. Upload to Overleaf or compile locally:
+2. Upload to Overleaf or compile locally:
    ```bash
    pdflatex main.tex
    pdflatex main.tex  # Run twice for TOC
@@ -879,7 +708,7 @@ To compile the LaTeX report:
 
 ## Running the Code
 The complete project code is available at:
-https://github.com/[your-username]/Market-Risk-Project
+https://github.com/treeboatt/Market-Risk-Project
 
 To run the analysis:
 ```bash
@@ -894,7 +723,7 @@ This will execute all questions (A through E) and display results.
 - Question B: Expected Shortfall (coherent risk measure)
 - Question C: Extreme Value Theory with GEV distribution
 - Question D: Bouchaud transitory price impact model
-- Question E: Haar wavelets and Hurst exponent analysis
+- Question E: Hurst exponent analysis
 
 ## Technical Notes
 - Pure Python 3.x implementation
@@ -909,6 +738,7 @@ This will execute all questions (A through E) and display results.
     print(f"[OK] Final report generated!")
     print(f"[OK] Location: {zip_filename}")
     print(f"[OK] Size: {file_size_kb:.2f} KB")
+    print(f"[OK] Images included: 7 code screenshots")
     print(f"{'='*60}\n")
 
 if __name__ == "__main__":
