@@ -76,9 +76,7 @@ def expected_shortfall(returns, alpha=0.05):
     es = sum(tail_losses) / len(tail_losses)
     return es
 
-
 print("QUESTION A")
-
 all_prices, all_dates = read_csv("../data/Natixis.csv")
 
 train_prices = filter_by_year(all_prices, all_dates, 2015, 2016)
@@ -100,8 +98,6 @@ print(f"Expected: {alpha*100:.0f}%")
 print()
 
 print("QUESTION B")
-
-
 es_val = expected_shortfall(train_returns, alpha)
 print(f"\nExpected Shortfall (alpha={alpha}):")
 print(f"VaR = {var_val:.4f}")

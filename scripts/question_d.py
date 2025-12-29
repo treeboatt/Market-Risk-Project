@@ -67,7 +67,6 @@ def get_gamma(transactions):
     return gamma
 
 print("QUESTION D")
-
 trans = read_transaction_data("../data/Dataset TD4.csv")
 
 V, r = get_impact_params(trans)

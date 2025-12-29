@@ -64,7 +64,6 @@ def var_evt(xi, mu, sigma, p):
     var_val = mu - (sigma / xi) * (1 - log_term**(-xi))
     return var_val
 
-
 print("QUESTION C")
 
 all_prices = read_csv("../data/Natixis.csv")
