@@ -64,7 +64,11 @@ def var_kernel(returns, alpha=0.05):
     return x
 
 def count_violations(returns, threshold):
-    return sum(1 for r in returns if r < threshold)
+    violations = 0
+    for r in returns:
+        if r < threshold:
+            violations += 1
+    return violations
 
 def expected_shortfall(returns, alpha=0.05):
     var_val = var_kernel(returns, alpha)
