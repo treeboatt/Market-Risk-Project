@@ -62,7 +62,7 @@ def get_gamma(transactions):
     if rho_1 > 0 and rho_2 > 0:
         gamma = math.log(rho_1 / rho_2) / math.log(2)
     else:
-        gamma = 0.5  
+        gamma = 0.5
 
     return gamma
 
